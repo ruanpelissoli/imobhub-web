@@ -1,0 +1,153 @@
+.layout {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.filters {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px dashed #c7cdd8;
+  border-radius: 0.75rem;
+  background-color: #f7f8fa;
+}
+
+.filtersTitle {
+  font-size: 1rem;
+}
+
+.filtersHint {
+  margin-top: 0.25rem;
+  color: #5a6072;
+  font-size: 0.875rem;
+}
+
+.results {
+  min-width: 0;
+}
+
+.resultCount {
+  color: #3c4354;
+  font-weight: 600;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.grid > li {
+  min-width: 0;
+}
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 1rem;
+  margin-top: 1.5rem;
+}
+
+.pageLink,
+.pageLinkDisabled,
+.pageStatus {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 1rem;
+}
+
+.pageLink {
+  border: 1px solid #c7cdd8;
+  border-radius: 0.5rem;
+  color: #0b5fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pageLink:hover {
+  border-color: #0b5fff;
+  background-color: #eef3ff;
+}
+
+.pageLink:focus-visible {
+  outline: 2px solid #0b5fff;
+  outline-offset: 2px;
+}
+
+.pageLinkDisabled {
+  border: 1px solid #e2e5ea;
+  border-radius: 0.5rem;
+  color: #9aa1b1;
+  font-weight: 600;
+}
+
+.pageStatus {
+  color: #3c4354;
+}
+
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #f0c2c2;
+  border-radius: 0.75rem;
+  background-color: #fdf3f3;
+  color: #8c2f2f;
+}
+
+.retryButton {
+  min-height: 44px;
+  padding-inline: 1.25rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background-color: #0b5fff;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.retryButton:hover {
+  background-color: #0a4fd6;
+}
+
+.retryButton:focus-visible {
+  outline: 2px solid #0b5fff;
+  outline-offset: 2px;
+}
+
+.emptyActions {
+  margin-top: 0.5rem;
+}
+
+.emptyActions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #0b5fff;
+}
+
+.skeletonCard {
+  height: 19rem;
+  border: 1px solid #e2e5ea;
+  border-radius: 0.75rem;
+  background-color: #f2f4f7;
+}
+
+@media (min-width: 48rem) {
+  .layout {
+    grid-template-columns: 18rem minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  }
+}
