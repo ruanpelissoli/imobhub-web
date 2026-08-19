@@ -12,6 +12,7 @@ import {
   toAmenityList,
 } from '@/lib/format'
 import type { PropertyDetail } from '@/lib/types'
+import { toListingViews } from './listings'
 import styles from './propertyDetail.module.css'
 
 interface PropertyDetailPageProps {
@@ -55,6 +56,7 @@ export default async function PropertyDetailPage({
   const attributes = formatAttributes(property)
   const amenities = toAmenityList(property.amenities)
   const description = formatDescription(property.description)
+  const listings = toListingViews(property.listings)
 
   return (
     <article className={styles.detail}>
@@ -95,6 +97,33 @@ export default async function PropertyDetailPage({
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Descrição</h2>
           <p className={styles.description}>{description}</p>
+        </section>
+      )}
+
+      {listings.length > 0 && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Anúncios disponíveis</h2>
+          <ul className={styles.listings}>
+            {listings.map((listing) => (
+              <li className={styles.listing} key={listing.key}>
+                <span className={styles.listingAgency}>
+                  {listing.agencyName}
+                </span>
+                <span className={styles.listingPrice}>{listing.price}</span>
+                {listing.url !== null && (
+                  <a
+                    className={styles.listingLink}
+                    href={listing.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={listing.linkLabel}
+                  >
+                    Ver anúncio original
+                  </a>
+                )}
+              </li>
+            ))}
+          </ul>
         </section>
       )}
     </article>
