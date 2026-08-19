@@ -3,12 +3,13 @@
 ## Purpose
 
 Tela canônica de um imóvel: galeria de fotos, título, preço, endereço, atributos,
-comodidades e descrição, a partir de `getPropertyById(id)`. É a página mais
-acessada do produto — cada link de resultado e cada link compartilhado cai aqui.
+comodidades, descrição e a seção "Anúncios disponíveis" (as imobiliárias que
+anunciam o imóvel, com preço por anúncio e link externo), tudo a partir de
+`getPropertyById(id)`. É a página mais acessada do produto — cada link de
+resultado e cada link compartilhado cai aqui.
 
 A rota tem as três fronteiras do App Router: `page.tsx` (servidor), `loading.tsx`
-(Suspense) e `error.tsx` (client). A seção de imobiliárias/`listings` **não** está
-aqui ainda — vem na task #8.
+(Suspense) e `error.tsx` (client).
 
 ## Key decisions
 
@@ -28,8 +29,13 @@ aqui ainda — vem na task #8.
   `next/image` quebraria em runtime para qualquer host fora da allowlist. Definir
   essa allowlist é decisão à parte.
 - **Formatação em `src/lib/format.ts`, estado da galeria em
-  `src/components/propertyGalleryState.ts`.** Vitest roda sem jsdom/RTL, então a
-  regra testável mora fora do `.tsx` (precedente de `searchParams.ts`).
+  `src/components/propertyGalleryState.ts`, regras dos anúncios em `listings.ts`
+  co-locado.** Vitest roda sem jsdom/RTL, então a regra testável mora fora do
+  `.tsx` (precedente de `searchParams.ts`). O nome `listings.ts` não colide por
+  caixa com nenhum `.tsx` do diretório — ver o TS1149 em `src/components/CLAUDE.md`.
+  `toListingViews` devolve a lista pronta (nome, preço formatado, url validada,
+  rótulo acessível) e o `page.tsx` só desenha `<ul>/<li>` — sem componente
+  dedicado, porque não há estado nem interatividade que justifique client.
 - **Estilos em `propertyDetail.module.css` co-locado**, não em `globals.css`. É a
   convenção estabelecida pelo `PropertyCard`; `globals.css` fica para reset e
   utilitários de layout. `page`, `loading` e `error` compartilham esse módulo.
@@ -59,6 +65,18 @@ aqui ainda — vem na task #8.
   `PropertyCard`**, que omite zerados — o card é resumo, esta tela é a canônica.
 - Preço zero ou ausente vira "Preço sob consulta", igual ao card: a formatação tem
   uma dona só (`src/lib/format.ts`).
+- **Anúncios (`toListingViews`)**: a seção some inteira quando `listings` é
+  ausente, `null` ou `[]` — mesma convenção de comodidades/descrição, sem
+  empty-state. `agency_name` vazio/nulo/só espaços → "Imobiliária". Preço
+  inválido **não** esconde o item: vira "Preço sob consulta". `url` só é aceita
+  em `http:`/`https:`; qualquer outra coisa (vazia, relativa, `javascript:`,
+  `ftp:`) renderiza o item **sem** link, em vez de um `<a href="">` quebrado.
+- **Ordenação por preço crescente**, com os anúncios sem preço válido no fim
+  preservando a ordem original. É deliberado: a seção existe para comparar
+  preços, então a ordem da API não é respeitada aqui. `key` combina índice e `id`
+  porque o scraping repete/omite `id`.
+- O link tem `aria-label` "Ver anúncio original de {imobiliária}": sem isso um
+  leitor de tela ouve N links idênticos sem saber de quem é cada um.
 - `generateMetadata` reusa `loadProperty`; sucesso → título do imóvel, 404 →
   "Imóvel não encontrado", outros erros → "Imóvel". **Metadata nunca derruba a
   página.** Não gera request extra: o `fetch` do Next deduplica requisições
@@ -78,10 +96,16 @@ aqui ainda — vem na task #8.
   `GET /api/v1/properties/{id}` (#29) traz `canonical_address` e **não** traz
   `title` nem `price` — os preços vivem em `listings[].price_raw`. O
   `src/lib/types.ts` do repo modela `title`/`address`/`price`. Alinhar afetaria
-  `searchProperties`, `api.test.ts` e a task #8, então ficou fora do escopo aqui.
+  `searchProperties` e `api.test.ts`, então segue fora do escopo desta rota.
   Mitigação: todos os formatadores toleram campo ausente em runtime (título vazio
   → "Imóvel", preço ausente → `PRICE_ON_REQUEST` ("Preço sob consulta"), endereço
-  junta só o que existir), então a tela degrada em vez de quebrar.
+  junta só o que existir), então a tela degrada em vez de quebrar. **Na seção de
+  anúncios isso é visível:** se a API só enviar `price_raw`, todos os itens
+  mostram "Preço sob consulta" e a ordenação cai na ordem original da API. É
+  degradação prevista, não bug — corrigir é alinhar o contrato, não a UI.
+- **`target="_blank"` exige `rel="noopener noreferrer"`** nos links de anúncio: o
+  destino é um domínio de terceiro vindo de scraping, e sem `noopener` ele ganha
+  acesso a `window.opener`.
 - **Em produção o Next redige a mensagem de erros de Server Component** antes de
   entregá-la ao boundary de client: `error.message` chega como um parágrafo
   técnico em inglês ("An error occurred in the Server Components render…"). Como
