@@ -13,7 +13,10 @@ for necessário, ele nasce aqui.
 `format.ts` é coisa diferente e deliberadamente separada: **apresentação pura, sem
 rede** — preço em BRL, área em m², endereço concatenado, contagens no singular ou
 plural. É seguro importar de qualquer componente client; `api.ts` não é (arrasta
-`ApiError`, timeouts e a base URL para o bundle).
+`ApiError`, timeouts e a base URL para o bundle). É a **única dona** da formatação
+de preço e área: `PropertyCard` e a tela de detalhe consomem daqui
+(`propertyCard.format.ts` só re-exporta), porque o mesmo imóvel mostrando
+`R$ 850.000` num lugar e `R$ 850.000,00` no outro é bug de produto.
 
 ## Key decisions
 
@@ -54,12 +57,15 @@ plural. É seguro importar de qualquer componente client; `api.ts` não é (arra
 
 ### `format.ts`
 
-- Distinção central: **ausência de dado some da tela, zero é informação.** Área,
-  quartos, banheiros e vagas ausentes (`null`/`undefined`/`NaN`/negativo) retornam
-  `null` e o chamador omite o atributo; `0` vira rótulo próprio ("Sem vagas").
-  Área `0` é tratada como ausência — imóvel com zero m² é dado sujo, não fato.
-- Preço `0` **é** formatado (`R$ 0,00`); ausente ou inválido vira "Preço não
-  informado". Nunca exiba um preço vazio como zero implícito.
+- **Preço e área só existem quando são positivos.** `0`, negativo, `NaN` ou
+  ausente → "Preço sob consulta" e `null`, respectivamente. Um imóvel de `R$ 0` ou
+  `0 m²` é dado sujo de scraping, não fato — nunca exiba como valor real.
+- Preço em BRL **sem centavos** (`maximumFractionDigits: 0`) e área arredondada ao
+  m² inteiro: anúncio de imóvel não mostra centavos.
+- **`formatCount` é a exceção deliberada: zero é informação.** "Sem vagas" é
+  diferente de vagas desconhecidas. O card compacto omite atributos zerados
+  (`buildAttributes`), a tela de detalhe os exibe (`formatAttributes`) — na tela
+  canônica, silêncio seria lido como "não sabemos".
 - `formatAddress` pula partes vazias sem deixar vírgula pendurada e retorna `null`
   quando nada sobra.
 - `toAmenityList` aplica `trim`, descarta vazios e **remove duplicatas** mantendo a

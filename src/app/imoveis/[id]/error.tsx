@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import styles from './propertyDetail.module.css'
 
 const FALLBACK_MESSAGE =
   'Não foi possível carregar o imóvel. Tente novamente em instantes.'
@@ -15,18 +16,18 @@ export default function PropertyDetailError({
   const message = error.message?.trim() ? error.message.trim() : FALLBACK_MESSAGE
 
   return (
-    <section className="property-error" role="alert">
-      <h1 className="page-title">Não foi possível carregar o imóvel</h1>
-      <p className="property-error__message">{message}</p>
-      <div className="property-error__actions">
+    <section className={styles.error} role="alert">
+      <h1 className={styles.title}>Não foi possível carregar o imóvel</h1>
+      <p className={styles.errorMessage}>{message}</p>
+      <div className={styles.errorActions}>
         <button
           type="button"
-          className="property-error__retry"
+          className={styles.retryButton}
           onClick={() => reset()}
         >
           Tentar novamente
         </button>
-        <Link className="property-error__link" href="/imoveis">
+        <Link className={styles.backLink} href="/imoveis">
           ← Voltar aos resultados
         </Link>
       </div>

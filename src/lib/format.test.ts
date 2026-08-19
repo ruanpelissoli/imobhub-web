@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   FALLBACK_TITLE,
-  PRICE_UNAVAILABLE,
+  PRICE_ON_REQUEST,
   formatAddress,
   formatArea,
   formatAttributes,
@@ -12,33 +12,30 @@ import {
   toAmenityList,
 } from './format'
 
-const brl = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL',
-})
+const normalize = (value: string) => value.replace(/\s/g, ' ')
 
 describe('formatPrice', () => {
   it('formata o valor em BRL com locale pt-BR', () => {
-    expect(formatPrice(750000)).toBe(brl.format(750000))
+    expect(normalize(formatPrice(750000))).toBe('R$ 750.000')
   })
 
-  it('formata preço zero em vez de omitir', () => {
-    expect(formatPrice(0)).toBe(brl.format(0))
+  it('arredonda centavos para o real mais próximo', () => {
+    expect(normalize(formatPrice(1234.56))).toBe('R$ 1.235')
   })
 
-  it('preserva centavos', () => {
-    expect(formatPrice(1234.56)).toBe(brl.format(1234.56))
+  it('usa o texto sob consulta quando o preço é zero', () => {
+    expect(formatPrice(0)).toBe(PRICE_ON_REQUEST)
   })
 
-  it('usa o texto de indisponível quando o preço é ausente', () => {
-    expect(formatPrice(null)).toBe(PRICE_UNAVAILABLE)
-    expect(formatPrice(undefined)).toBe(PRICE_UNAVAILABLE)
+  it('usa o texto sob consulta quando o preço é ausente', () => {
+    expect(formatPrice(null)).toBe(PRICE_ON_REQUEST)
+    expect(formatPrice(undefined)).toBe(PRICE_ON_REQUEST)
   })
 
-  it('usa o texto de indisponível para valores inválidos', () => {
-    expect(formatPrice(Number.NaN)).toBe(PRICE_UNAVAILABLE)
-    expect(formatPrice(Number.POSITIVE_INFINITY)).toBe(PRICE_UNAVAILABLE)
-    expect(formatPrice(-1)).toBe(PRICE_UNAVAILABLE)
+  it('usa o texto sob consulta para valores inválidos', () => {
+    expect(formatPrice(Number.NaN)).toBe(PRICE_ON_REQUEST)
+    expect(formatPrice(Number.POSITIVE_INFINITY)).toBe(PRICE_ON_REQUEST)
+    expect(formatPrice(-1)).toBe(PRICE_ON_REQUEST)
   })
 })
 
@@ -47,8 +44,12 @@ describe('formatArea', () => {
     expect(formatArea(120)).toBe('120 m²')
   })
 
-  it('formata decimais no padrão pt-BR', () => {
-    expect(formatArea(85.5)).toBe('85,5 m²')
+  it('arredonda decimais para o m² mais próximo', () => {
+    expect(formatArea(85.5)).toBe('86 m²')
+  })
+
+  it('usa separador de milhar pt-BR em áreas grandes', () => {
+    expect(normalize(formatArea(1200) ?? '')).toBe('1.200 m²')
   })
 
   it('retorna null quando a área é ausente, zero ou inválida', () => {

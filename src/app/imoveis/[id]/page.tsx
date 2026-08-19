@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import PropertyGallery from '@/components/PropertyGallery'
+import { PropertyGallery } from '@/components/PropertyGallery'
 import { getPropertyById, isApiError } from '@/lib/api'
 import {
   formatAddress,
@@ -12,6 +12,7 @@ import {
   toAmenityList,
 } from '@/lib/format'
 import type { PropertyDetail } from '@/lib/types'
+import styles from './propertyDetail.module.css'
 
 interface PropertyDetailPageProps {
   params: Promise<{ id: string }>
@@ -56,50 +57,44 @@ export default async function PropertyDetailPage({
   const description = formatDescription(property.description)
 
   return (
-    <article className="property-detail">
-      <Link className="property-back-link" href="/imoveis">
+    <article className={styles.detail}>
+      <Link className={styles.backLink} href="/imoveis">
         ← Voltar aos resultados
       </Link>
 
       <PropertyGallery title={title} photos={property.photos} />
 
-      <header className="property-detail__header">
-        <h1 className="page-title">{title}</h1>
-        <p className="property-detail__price">{formatPrice(property.price)}</p>
-        {address !== null && (
-          <p className="property-detail__address">{address}</p>
-        )}
+      <header className={styles.header}>
+        <h1 className={styles.title}>{title}</h1>
+        <p className={styles.price}>{formatPrice(property.price)}</p>
+        {address !== null && <p className={styles.address}>{address}</p>}
       </header>
 
       {attributes.length > 0 && (
-        <section className="property-section" aria-label="Características">
-          <ul className="property-attributes">
+        <section className={styles.section} aria-label="Características">
+          <ul className={styles.attributes}>
             {attributes.map((attribute) => (
-              <li className="property-attributes__item" key={attribute.key}>
-                {attribute.text}
-              </li>
+              <li key={attribute.key}>{attribute.text}</li>
             ))}
           </ul>
         </section>
       )}
 
       {amenities.length > 0 && (
-        <section className="property-section">
-          <h2 className="property-section__title">Comodidades</h2>
-          <ul className="property-amenities">
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Comodidades</h2>
+          <ul className={styles.amenities}>
             {amenities.map((amenity) => (
-              <li className="property-amenities__item" key={amenity}>
-                {amenity}
-              </li>
+              <li key={amenity}>{amenity}</li>
             ))}
           </ul>
         </section>
       )}
 
       {description !== null && (
-        <section className="property-section">
-          <h2 className="property-section__title">Descrição</h2>
-          <p className="property-description">{description}</p>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Descrição</h2>
+          <p className={styles.description}>{description}</p>
         </section>
       )}
     </article>

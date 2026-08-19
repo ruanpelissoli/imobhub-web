@@ -30,8 +30,9 @@ estrutura de rotas e o layout não.
   o título curto (`'Resultados'`) e o sufixo da marca vem de graça.
 - **Sem framework de CSS.** `globals.css` é o único arquivo de estilo: reset
   mínimo, utilitárias (`.container`, `.brand`, `.nav-list`) e as classes de
-  componente (`.search-bar*`, `.home-hero*`, `.property-*`). Sem CSS Modules,
-  Tailwind ou styled-components — telas novas seguem esse padrão.
+  componente antigas (`.search-bar*`, `.home-hero*`). Sem Tailwind ou
+  styled-components. **Estilo novo nasce em CSS Module co-locado** (ver
+  `src/components/CLAUDE.md`); `globals.css` fica para reset e utilitários.
 - **`toDisplayParams` extraído para `imoveis/searchParams.ts`.** Componentes de
   servidor `async` não são triviais de renderizar em teste sem jsdom/plugin React;
   isolar a normalização dos query params numa função pura dá cobertura real dos

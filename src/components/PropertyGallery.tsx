@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import styles from './PropertyGallery.module.css'
+import { isBrokenImage } from './imageFallback'
 import {
   nextPhotoIndex,
   photoAlt,
@@ -9,16 +11,16 @@ import {
   toPhotoList,
 } from './propertyGalleryState'
 
-interface PropertyGalleryProps {
+export interface PropertyGalleryProps {
   title: string
   photos?: string[] | null
 }
 
 function GalleryPlaceholder({ message }: { message: string }) {
   return (
-    <div className="property-gallery__placeholder">
+    <div className={styles.placeholder}>
       <svg
-        className="property-gallery__placeholder-icon"
+        className={styles.placeholderIcon}
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -28,19 +30,16 @@ function GalleryPlaceholder({ message }: { message: string }) {
         aria-hidden="true"
         focusable="false"
       >
-        <rect x="3" y="4" width="18" height="16" rx="2" />
-        <circle cx="8.5" cy="9.5" r="1.5" />
-        <path d="M21 15.5 16 11l-5.5 5.5L8 14l-5 4.5" />
+        <path d="M3 10.5 12 3l9 7.5" />
+        <path d="M5 9.5V21h14V9.5" />
+        <path d="M10 21v-6h4v6" />
       </svg>
-      <p className="property-gallery__placeholder-text">{message}</p>
+      <p>{message}</p>
     </div>
   )
 }
 
-export default function PropertyGallery({
-  title,
-  photos,
-}: PropertyGalleryProps) {
+export function PropertyGallery({ title, photos }: PropertyGalleryProps) {
   const photoList = toPhotoList(photos)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [brokenPhotos, setBrokenPhotos] = useState<ReadonlySet<string>>(
@@ -49,37 +48,47 @@ export default function PropertyGallery({
 
   const total = photoList.length
   const currentPhoto = photoList[currentIndex]
-  const isBroken = currentPhoto !== undefined && brokenPhotos.has(currentPhoto)
+  const isCurrentBroken =
+    currentPhoto !== undefined && brokenPhotos.has(currentPhoto)
+
+  const markBroken = (url: string) =>
+    setBrokenPhotos((previous) =>
+      previous.has(url) ? previous : new Set(previous).add(url),
+    )
+
+  // O <img> vem no HTML do servidor e pode falhar antes da hidratação anexar o
+  // onError; o ref pega essa falha já ocorrida, o onError pega as posteriores.
+  const detectBrokenOnMount = (node: HTMLImageElement | null) => {
+    if (currentPhoto !== undefined && isBrokenImage(node)) markBroken(currentPhoto)
+  }
 
   return (
-    <section className="property-gallery" aria-label="Galeria de fotos">
-      <div className="property-gallery__frame">
+    <section className={styles.gallery} aria-label="Galeria de fotos">
+      <div className={styles.frame}>
         {currentPhoto === undefined ? (
           <GalleryPlaceholder message="Sem fotos disponíveis" />
-        ) : isBroken ? (
+        ) : isCurrentBroken ? (
           <GalleryPlaceholder message="Foto indisponível" />
         ) : (
-          // eslint-disable-next-line @next/next/no-img-element -- fotos vêm de hosts arbitrários de scraping e next.config.ts não tem images.remotePatterns
+          // eslint-disable-next-line @next/next/no-img-element -- fotos vêm de hosts arbitrários de scraping; next/image exigiria remotePatterns fechado
           <img
-            className="property-gallery__image"
+            ref={detectBrokenOnMount}
+            className={styles.photo}
             src={currentPhoto}
             alt={photoAlt(title, currentIndex)}
             loading="lazy"
-            onError={() =>
-              setBrokenPhotos((previous) =>
-                new Set(previous).add(currentPhoto),
-              )
-            }
+            decoding="async"
+            onError={() => markBroken(currentPhoto)}
           />
         )}
       </div>
 
       {total > 1 && (
-        <div className="property-gallery__controls">
+        <div className={styles.controls}>
           <button
             type="button"
-            className="property-gallery__button"
-            aria-label="Foto anterior"
+            className={styles.button}
+            aria-label="Ver foto anterior"
             onClick={() =>
               setCurrentIndex((index) => prevPhotoIndex(index, total))
             }
@@ -87,14 +96,14 @@ export default function PropertyGallery({
             Anterior
           </button>
 
-          <p className="property-gallery__counter" aria-live="polite">
+          <p className={styles.counter} aria-live="polite">
             {photoCounterLabel(currentIndex, total)}
           </p>
 
           <button
             type="button"
-            className="property-gallery__button"
-            aria-label="Próxima foto"
+            className={styles.button}
+            aria-label="Ver próxima foto"
             onClick={() =>
               setCurrentIndex((index) => nextPhotoIndex(index, total))
             }

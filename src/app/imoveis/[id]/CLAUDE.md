@@ -30,6 +30,9 @@ aqui ainda — vem na task #8.
 - **Formatação em `src/lib/format.ts`, estado da galeria em
   `src/components/propertyGalleryState.ts`.** Vitest roda sem jsdom/RTL, então a
   regra testável mora fora do `.tsx` (precedente de `searchParams.ts`).
+- **Estilos em `propertyDetail.module.css` co-locado**, não em `globals.css`. É a
+  convenção estabelecida pelo `PropertyCard`; `globals.css` fica para reset e
+  utilitários de layout. `page`, `loading` e `error` compartilham esse módulo.
 
 ## Business logic
 
@@ -43,7 +46,10 @@ aqui ainda — vem na task #8.
 - Comodidades e descrição: a seção inteira **não é renderizada** quando o campo é
   ausente, `null`, `[]` ou string só de espaços. Nada de "Nenhuma comodidade".
 - Atributos ausentes somem individualmente; `0` vira rótulo próprio ("Sem vagas"),
-  porque zero vagas é informação, não ausência de dado.
+  porque zero vagas é informação, não ausência de dado. **Difere do
+  `PropertyCard`**, que omite zerados — o card é resumo, esta tela é a canônica.
+- Preço zero ou ausente vira "Preço sob consulta", igual ao card: a formatação tem
+  uma dona só (`src/lib/format.ts`).
 - `generateMetadata` reusa `loadProperty`; sucesso → título do imóvel, 404 →
   "Imóvel não encontrado", outros erros → "Imóvel". **Metadata nunca derruba a
   página.** Não gera request extra: o `fetch` do Next deduplica requisições
@@ -69,5 +75,5 @@ aqui ainda — vem na task #8.
 - A página não renderiza header próprio nem `<main>` — `layout.tsx` já fornece
   ambos.
 - No Next 15 `params` é `Promise` e precisa de `await`.
-- Foto com URL quebrada cai no mesmo placeholder via `onError`; nunca o ícone de
-  imagem quebrada do browser.
+- Foto com URL quebrada cai no mesmo placeholder; o `onError` sozinho não basta,
+  ver `src/components/CLAUDE.md`.

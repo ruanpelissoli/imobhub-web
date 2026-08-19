@@ -1,13 +1,14 @@
 export const FALLBACK_TITLE = 'Imóvel'
-export const PRICE_UNAVAILABLE = 'Preço não informado'
+export const PRICE_ON_REQUEST = 'Preço sob consulta'
 
 const priceFormatter = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
   currency: 'BRL',
+  maximumFractionDigits: 0,
 })
 
 const areaFormatter = new Intl.NumberFormat('pt-BR', {
-  maximumFractionDigits: 2,
+  maximumFractionDigits: 0,
 })
 
 type MaybeNumber = number | null | undefined
@@ -15,6 +16,11 @@ type MaybeString = string | null | undefined
 
 function toFiniteNumber(value: MaybeNumber): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null
+}
+
+function toPositiveNumber(value: MaybeNumber): number | null {
+  const finite = toFiniteNumber(value)
+  return finite !== null && finite > 0 ? finite : null
 }
 
 function toFilledText(value: MaybeString): string | null {
@@ -27,15 +33,13 @@ export function formatTitle(title: MaybeString): string {
 }
 
 export function formatPrice(price: MaybeNumber): string {
-  const value = toFiniteNumber(price)
-  if (value === null || value < 0) return PRICE_UNAVAILABLE
-  return priceFormatter.format(value)
+  const value = toPositiveNumber(price)
+  return value === null ? PRICE_ON_REQUEST : priceFormatter.format(value)
 }
 
 export function formatArea(area: MaybeNumber): string | null {
-  const value = toFiniteNumber(area)
-  if (value === null || value <= 0) return null
-  return `${areaFormatter.format(value)} m²`
+  const value = toPositiveNumber(area)
+  return value === null ? null : `${areaFormatter.format(value)} m²`
 }
 
 export interface AddressParts {
