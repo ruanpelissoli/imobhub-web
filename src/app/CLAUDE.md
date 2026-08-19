@@ -5,19 +5,22 @@
 Esqueleto navegacional do ImobHub: o root layout compartilhado e as três rotas
 principais do produto (`/`, `/imoveis`, `/imoveis/[id]`) mais a página 404.
 
-A Home (`/`) e `/imoveis` já são telas de verdade: a Home navega para `/imoveis`
-com os filtros na URL, e `/imoveis` lê esses filtros, chama `searchProperties`,
-renderiza o grid de `PropertyCard` com contagem e paginação e oferece o
-`FilterPanel` lateral para refinar a busca. `/imoveis/[id]`
-segue **placeholder**, exibindo o `id` recebido; o detalhe com dados reais vem em
-task seguinte e pendura nesse esqueleto — o conteúdo dessa página pode ser
-substituído sem cerimônia, a estrutura de rotas e o layout não.
+As três rotas já são telas de verdade. A Home navega para `/imoveis` com os
+filtros na URL; `/imoveis` lê esses filtros, chama `searchProperties`, renderiza
+o grid de `PropertyCard` com contagem e paginação e oferece o `FilterPanel`
+lateral para refinar a busca; `/imoveis/[id]` chama `getPropertyById` e mostra
+galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
+`imoveis/[id]/CLAUDE.md`).
 
 ## Key decisions
 
 - **Server Components por padrão.** Nenhuma página é `'use client'`; a Home
-  permanece de servidor e aninha o `SearchBar` client (`src/components/`). Só
-  marque uma página como client quando a própria página tiver interatividade.
+  permanece de servidor e aninha o `SearchBar` client, e o detalhe aninha o
+  `PropertyGallery` (`src/components/`). Só marque uma página como client quando a
+  própria página tiver interatividade.
+- **Carregamento via `loading.tsx`, erro via `error.tsx`.** Rotas que buscam dados
+  não usam estado de `isLoading` no cliente: a busca é no servidor e o Suspense da
+  rota cobre isso. `error.tsx` é `'use client'` por exigência do Next.
 - **Header em um único lugar.** A marca "ImobHub" vive em `layout.tsx` e em lugar
   nenhum mais. Páginas nunca renderizam header próprio nem um `<main>` — o layout
   já fornece ambos, e aninhar `<main>` quebra a semântica.
@@ -28,20 +31,27 @@ substituído sem cerimônia, a estrutura de rotas e o layout não.
   (`.container`, `.brand`, `.nav-list`, `.page-title`, `.empty-state`) e as
   classes das telas mais antigas (`.search-bar*`, `.home-hero*`). Sem Tailwind ou
   styled-components. **Tela nova nasce com CSS Module co-locado**
-  (`imoveis/page.module.css`), como os componentes.
+  (`imoveis/page.module.css`, `imoveis/[id]/propertyDetail.module.css`), como os
+  componentes.
 - **Lógica testável fora do `.tsx`: `imoveis/searchFilters.ts`.** Componentes de
   servidor `async` não são triviais de renderizar em teste sem jsdom/plugin React;
   isolar parsing de query params, montagem de href de página e formatação numa
   função pura dá cobertura real dos edge cases sem arrastar infra de renderização.
   Substituiu o `searchParams.ts`/`toDisplayParams` do placeholder, que sumiu junto
   com ele.
-- **Erro da API tratado com `try/catch` na página, não com `error.tsx`.** Em
-  produção o Next sanitiza erros lançados no render de Server Component antes de
-  chegarem ao `error.tsx`, então a `error.message` em português do `ApiError`
-  **não** apareceria na UI. Com try/catch a mensagem certa é exibida; erro que não
-  seja `ApiError` é re-lançado (bug de código não vira mensagem amigável). O
-  "Tentar novamente" é o `RetryButton` client com `useRouter().refresh()`, já que
-  não existe `reset()` do boundary.
+- **Em produção o Next sanitiza erros lançados no render de Server Component**
+  antes de chegarem ao `error.tsx`: a `error.message` em português do `ApiError`
+  vira um parágrafo técnico em inglês. As duas rotas que consomem a API tratam
+  isso, por caminhos diferentes — ao mexer em qualquer uma, saiba qual é qual:
+  - `/imoveis` usa **`try/catch` na própria página**, então a mensagem certa nunca
+    cruza a fronteira e é exibida como veio. Erro que não seja `ApiError` é
+    re-lançado (bug de código não vira mensagem amigável). O "Tentar novamente" é
+    o `RetryButton` client com `useRouter().refresh()`, já que não existe
+    `reset()` do boundary. **Prefira esse padrão em tela nova.**
+  - `/imoveis/[id]` usa **`error.tsx`**, exigido pelos critérios da task, e por
+    isso não pode confiar na mensagem que chega: `resolveErrorMessage`
+    (`src/lib/messages.ts`) só exibe o que está numa allowlist e cai num texto
+    genérico em português para o resto. Ver `imoveis/[id]/CLAUDE.md`.
 - **A URL é a única fonte de verdade dos filtros.** `/imoveis` lê os params uma
   vez (`parseSearchFilters`) e passa o resultado como `defaults` para o
   `FilterPanel`, junto de `currentQuery` (`toSearchParams(raw).toString()`, a
@@ -85,21 +95,21 @@ substituído sem cerimônia, a estrutura de rotas e o layout não.
   (`src/components/`), renderizado **fora** dos blocos condicionais de erro e de
   lista vazia — o usuário precisa poder corrigir justamente o filtro que zerou a
   busca. O `<aside>` de `loading.tsx` continua sendo um esqueleto estático.
-- `/imoveis/[id]` exibe o `id` cru, numérico ou não (`/imoveis/abc` renderiza
-  normalmente). Não há checagem contra a API; imóvel inexistente será tratado na
-  task de detalhe com dados reais, provavelmente com `notFound()` sobre o
-  `ApiError` 404 de `getPropertyById`.
+- `/imoveis/[id]` busca o imóvel na API. ID inexistente vira `notFound()` a partir
+  do `ApiError` com `status === 404` de `getPropertyById`; demais falhas caem no
+  `error.tsx` da própria rota. Detalhes em `imoveis/[id]/CLAUDE.md`.
 
 ## Dependencies
 
 - `next` (App Router, `next/link`, `next/navigation`), `react`, `react-dom`.
 - Dados vêm exclusivamente de `src/lib/api.ts` — nenhuma rota deve chamar `fetch`
-  direto para a `imobhub-api`. Veja `src/lib/CLAUDE.md`. Hoje só `/imoveis`
-  consome a API (`searchProperties`).
+  direto para a `imobhub-api`. Veja `src/lib/CLAUDE.md`. Hoje `/imoveis`
+  (`searchProperties`) e `/imoveis/[id]` (`getPropertyById`) consomem a API.
 - `/imoveis` reusa `toTransactionType`/`SEARCH_RESULTS_PATH` de
   `@/components/searchBarUrl` (módulo puro, sem `'use client'`) para não duplicar
   a regra de descarte que a barra de busca já implementa, e o `PropertyCard` com
   `headingLevel={2}` — o grid fica direto sob o `h1` da página.
+- `/imoveis/[id]` usa `PropertyGallery`, `@/lib/format` e `@/lib/messages`.
 
 ## Gotchas
 
