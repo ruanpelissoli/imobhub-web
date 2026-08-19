@@ -6,13 +6,31 @@ const read = (relativePath: string) =>
 
 const tokens = read('./tokens.css')
 
-const consumers = [
-  { name: 'src/app/globals.css', css: read('./globals.css') },
+const stylesheets = [
+  { name: 'src/app/globals.css', css: read('./globals.css'), literalFree: true },
   {
     name: 'src/components/PropertyCard.module.css',
     css: read('../components/PropertyCard.module.css'),
+    literalFree: true,
+  },
+  {
+    name: 'src/components/PropertyGallery.module.css',
+    css: read('../components/PropertyGallery.module.css'),
+    literalFree: true,
+  },
+  {
+    name: 'src/app/imoveis/page.module.css',
+    css: read('./imoveis/page.module.css'),
+    literalFree: false,
+  },
+  {
+    name: 'src/app/imoveis/[id]/propertyDetail.module.css',
+    css: read('./imoveis/[id]/propertyDetail.module.css'),
+    literalFree: false,
   },
 ]
+
+const consumers = stylesheets.filter((sheet) => sheet.literalFree)
 
 const definedTokens = new Set(
   Array.from(tokens.matchAll(/^\s*(--[a-z0-9-]+)\s*:/gm), (match) => match[1]),
@@ -131,6 +149,9 @@ describe.each(consumers)('$name', ({ css }) => {
     }
   })
 
+})
+
+describe.each(stylesheets)('$name', ({ css }) => {
   it('só usa var(--x) de tokens definidos em tokens.css', () => {
     const used = Array.from(
       css.matchAll(/var\(\s*(--[a-z0-9-]+)/g),

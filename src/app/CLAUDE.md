@@ -145,10 +145,17 @@ o grid de `PropertyCard` com contagem e paginação; `/imoveis/[id]` chama
   A escala canônica é mobile ≤640px / tablet 641–1024px / desktop ≥1025px; as
   media queries de 48rem ainda não seguem essa escala (dívida consciente —
   realinhar muda o layout e é task própria).
-- **`imoveis/page.module.css` ainda não usa tokens** — chegou em paralelo à task
-  que criou `tokens.css` e ficou fora do escopo dela (por isso não está na lista
-  `consumers` do `designTokens.test.ts`). Migrá-lo exige três tokens que a spec
-  atual não tem: um cinza de superfície sutil (`#f7f8fa`/`#f2f4f7`, que devem
-  colapsar num só) e o par de fundo/borda do bloco de erro
-  (`#fdf3f3`/`#f0c2c2`/`#8c2f2f` — `--color-error` sozinho não cobre, é o tom de
-  texto). Ao tocar nesse arquivo, migre-o e adicione-o ao teste.
+- **`page.module.css` e `[id]/propertyDetail.module.css` estão migrados só em
+  parte.** Chegaram de `main` depois que `tokens.css` já existia. Tudo que tinha
+  equivalente exato na tabela virou `var(--*)`; sobraram os literais cujo token
+  a spec aprovada não define, e que **não** foram colapsados de propósito — mexer
+  no tom de tela recém-mergeada de outra pessoa seria mudança visual não
+  autorizada. Por isso os dois estão em `stylesheets` mas fora de `consumers` no
+  `designTokens.test.ts`: a checagem de `var()` indefinido vale, a proibição de
+  literal não. Para fechar, faltam quatro tokens:
+  - um cinza de superfície sutil que colapse `#f4f6fa` / `#f7f8fa` / `#f2f4f7`
+    (três quase-idênticos, inventados por três telas diferentes);
+  - o azul desabilitado `#7ba4ff` do `.retryButton:disabled` do detalhe;
+  - o par fundo/borda do bloco de erro (`#fdf3f3` / `#f0c2c2`) — `--color-error`
+    não cobre, ele é o tom de **texto**, e o texto atual (`#8c2f2f`) é um quarto
+    vermelho a reconciliar.
