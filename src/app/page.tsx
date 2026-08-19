@@ -1,20 +1,14 @@
-import Link from 'next/link'
+import SearchBar from '@/components/SearchBar'
 
 export default function HomePage() {
   return (
-    <section>
-      <h1 className="page-title">ImobHub</h1>
-      <p>Busca de imóveis agregada de múltiplas imobiliárias.</p>
-      <ul className="nav-list">
-        <li>
-          <Link href="/imoveis">Ver imóveis</Link>
-        </li>
-        <li>
-          <Link href="/imoveis?cidade=curitiba&precoMax=500000">
-            Ver imóveis em Curitiba até R$ 500.000
-          </Link>
-        </li>
-      </ul>
+    <section className="home-hero">
+      <h1 className="page-title">Encontre seu imóvel ideal</h1>
+      <p className="home-hero__subtitle">
+        Imóveis de várias imobiliárias reunidos em um só lugar. Busque por cidade,
+        bairro ou palavra-chave.
+      </p>
+      <SearchBar />
     </section>
   )
 }

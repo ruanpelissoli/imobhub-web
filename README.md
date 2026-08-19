@@ -40,15 +40,19 @@ Se `NEXT_PUBLIC_API_URL` não estiver definida, o cliente HTTP usa
 
 ## Rotas
 
-| Rota            | Tela                                                                  |
-| --------------- | --------------------------------------------------------------------- |
-| `/`             | Home                                                                    |
-| `/imoveis`      | Resultados (lê query params, ex.: `?cidade=curitiba&precoMax=500000`)   |
-| `/imoveis/[id]` | Detalhe do imóvel                                                       |
-| qualquer outra  | 404                                                                     |
+| Rota            | Tela                                                                       |
+| --------------- | -------------------------------------------------------------------------- |
+| `/`             | Home — headline e barra de busca                                             |
+| `/imoveis`      | Resultados (lê query params, ex.: `?q=curitiba&transaction_type=sale`)       |
+| `/imoveis/[id]` | Detalhe do imóvel                                                            |
+| qualquer outra  | 404                                                                          |
 
-As telas ainda são placeholders navegacionais: exibem os parâmetros recebidos,
-sem busca nem consumo de dados reais.
+Os nomes dos query params seguem o contrato da `imobhub-api` (`SearchFilters` em
+`src/lib/types.ts`): `q` para texto livre e `transaction_type` com os valores
+`sale` ("Comprar") e `rent` ("Alugar").
+
+A Home já navega para os Resultados, mas `/imoveis` e `/imoveis/[id]` ainda são
+placeholders: exibem os parâmetros recebidos, sem consumo de dados reais.
 
 ## Acesso a dados
 
