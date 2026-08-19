@@ -18,7 +18,7 @@ Componentes reutilizados por mais de uma rota:
 Padrão do diretório: o `.tsx` cuida de markup e boundary de client; toda regra
 testável mora num módulo `.ts` co-locado, porque o projeto usa Vitest **sem
 jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
-`src/app/imoveis/searchParams.ts`).
+`src/app/imoveis/searchFilters.ts`).
 
 ## Key decisions
 
@@ -54,9 +54,9 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
 - **`aspect-ratio` no contêiner da mídia** + `object-fit: cover` na foto: a altura
   não depende da imagem carregar, então o grid não pula quando uma foto falha.
 - **Export nomeado, um componente por arquivo.** É a convenção do resto do
-  projeto; `export default` só onde o App Router exige (`page.tsx`, `layout.tsx`).
-  `SearchBar` ainda usa `default` por ter chegado antes desta convenção — alinhe
-  quando for tocá-lo.
+  projeto (`api.ts`, `types.ts`, `searchFilters.ts`); `export default` só onde o
+  App Router exige (`page.tsx`, `layout.tsx`). `SearchBar` ainda usa `default`
+  por ter chegado antes desta convenção — alinhe quando for tocá-lo.
 
 ## Business logic
 
@@ -101,9 +101,11 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
   `PropertyCard` — ambos client-side, sem full page reload.
 - `@/lib/types` apenas para tipos (`TransactionType`, `Property`) e
   `@/lib/format` para formatação pura; **nada de `@/lib/api` aqui**.
-- `src/app/page.tsx` consome o `SearchBar`; `src/app/imoveis/[id]/page.tsx`
-  consome o `PropertyGallery`. O `PropertyCard` ainda não é consumido por nenhuma
-  rota — a integração é das tasks de Home e Resultados.
+- `src/app/page.tsx` consome o `SearchBar`; `src/app/imoveis/page.tsx` consome o
+  `PropertyCard` no grid de resultados, com `headingLevel={2}`, e reusa
+  `toTransactionType`/`SEARCH_RESULTS_PATH` de `searchBarUrl.ts`. Esse módulo é
+  puro e sem `'use client'` de propósito: precisa ser importável de Server
+  Components. `src/app/imoveis/[id]/page.tsx` consome o `PropertyGallery`.
 
 ## Gotchas
 
@@ -145,9 +147,9 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
   `globals.css` é rede de segurança, não substituto disso.
 - `formatPrice` usa espaço **não-quebrável** (vem do `Intl`); testes normalizam
   whitespace antes de comparar, senão quebram entre versões de ICU.
-- **Vitest não tem o alias `@/`** (o projeto não tem `vitest.config`). Módulo `.ts`
-  que um teste alcança precisa importar `src/lib` por caminho relativo
-  (`../lib/format`); `import type` não conta, porque some no transpile.
+- O alias `@/` funciona nos testes por causa do `vitest.config.mts` na raiz — ele
+  existe **só** para isso. Se um import `@/…` quebrar no Vitest mas passar no
+  `next build`, é esse arquivo que está desatualizado, não o import.
 - **Nunca nomeie o módulo de lógica diferindo do componente só no casing.**
   `propertyGallery.ts` ao lado de `PropertyGallery.tsx` faz o TypeScript resolver
   `@/components/PropertyGallery` para o `.ts` errado em filesystem

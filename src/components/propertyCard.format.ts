@@ -1,7 +1,7 @@
-import { formatArea } from '../lib/format'
+import { formatArea } from '@/lib/format'
 import type { Property } from '@/lib/types'
 
-export { PRICE_ON_REQUEST, formatArea, formatPrice } from '../lib/format'
+export { PRICE_ON_REQUEST, formatArea, formatPrice } from '@/lib/format'
 
 export type PropertyAttributeKey = 'bedrooms' | 'bathrooms' | 'parking_spots' | 'area'
 

@@ -86,6 +86,12 @@ aqui ainda — vem na task #8.
 - **`reset()` sozinho não refaz o fetch** quando o erro veio do servidor: ele
   re-renderiza o boundary a partir do payload RSC que já falhou. Daí o
   `router.refresh()` junto, dentro de `startTransition`. Não remova um dos dois.
+- **Esta rota trata erro por `error.tsx`; a irmã `/imoveis` trata por `try/catch`
+  na página.** Não é descuido: `error.tsx` era critério de aceite desta task, e
+  `/imoveis` chegou depois com o padrão que preserva a mensagem original. O
+  `RetryButton` de `/imoveis` não serve aqui porque não chama `reset()` do
+  boundary. Se um dia unificar, o caminho é migrar esta rota para `try/catch` —
+  aí `resolveErrorMessage` deixa de ser necessário nela.
 - A página não renderiza header próprio nem `<main>` — `layout.tsx` já fornece
   ambos.
 - No Next 15 `params` é `Promise` e precisa de `await`.

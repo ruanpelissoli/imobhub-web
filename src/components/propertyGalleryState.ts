@@ -1,4 +1,4 @@
-import { FALLBACK_TITLE } from '../lib/format'
+import { FALLBACK_TITLE } from '@/lib/format'
 
 export function toPhotoList(photos?: string[] | null): string[] {
   return (photos ?? []).flatMap((photo) => {

@@ -5,13 +5,11 @@
 Esqueleto navegacional do ImobHub: o root layout compartilhado e as três rotas
 principais do produto (`/`, `/imoveis`, `/imoveis/[id]`) mais a página 404.
 
-A Home (`/`) já é tela de verdade: headline mais a barra de busca, que navega para
-`/imoveis` com os filtros na URL. `/imoveis/[id]` também: consome a API de
-verdade, com galeria, dados canônicos e as fronteiras `loading`/`error`/`notFound`
-(ver `imoveis/[id]/CLAUDE.md`). Só `/imoveis` segue **placeholder**, exibindo os
-query params recebidos. A busca com dados reais vem em task seguinte e pendura
-nesse esqueleto — o conteúdo dessa página pode ser substituído sem cerimônia, a
-estrutura de rotas e o layout não.
+As três rotas já são telas de verdade. A Home navega para `/imoveis` com os
+filtros na URL; `/imoveis` lê esses filtros, chama `searchProperties` e renderiza
+o grid de `PropertyCard` com contagem e paginação; `/imoveis/[id]` chama
+`getPropertyById` e mostra galeria e dados canônicos, com as fronteiras
+`loading`/`error`/`notFound` (ver `imoveis/[id]/CLAUDE.md`).
 
 ## Key decisions
 
@@ -28,37 +26,77 @@ estrutura de rotas e o layout não.
 - **`metadata.title` com `template`.** O layout define
   `{ default: 'ImobHub', template: '%s | ImobHub' }`, então cada página exporta só
   o título curto (`'Resultados'`) e o sufixo da marca vem de graça.
-- **Sem framework de CSS.** Nem Tailwind nem styled-components. `globals.css`
-  guarda o reset mínimo, as utilitárias (`.container`, `.brand`, `.nav-list`) e as
-  classes de componente antigas (`.search-bar*`, `.home-hero*`). **Estilo novo
-  nasce em CSS Module co-locado** (ver `src/components/CLAUDE.md`) — `globals.css`
-  fica só para reset e utilitários.
-- **`toDisplayParams` extraído para `imoveis/searchParams.ts`.** Componentes de
+- **Sem framework de CSS.** `globals.css` guarda reset, utilitárias
+  (`.container`, `.brand`, `.nav-list`, `.page-title`, `.empty-state`) e as
+  classes das telas mais antigas (`.search-bar*`, `.home-hero*`). Sem Tailwind ou
+  styled-components. **Tela nova nasce com CSS Module co-locado**
+  (`imoveis/page.module.css`, `imoveis/[id]/propertyDetail.module.css`), como os
+  componentes.
+- **Lógica testável fora do `.tsx`: `imoveis/searchFilters.ts`.** Componentes de
   servidor `async` não são triviais de renderizar em teste sem jsdom/plugin React;
-  isolar a normalização dos query params numa função pura dá cobertura real dos
-  edge cases sem arrastar infra de teste de renderização.
+  isolar parsing de query params, montagem de href de página e formatação numa
+  função pura dá cobertura real dos edge cases sem arrastar infra de renderização.
+  Substituiu o `searchParams.ts`/`toDisplayParams` do placeholder, que sumiu junto
+  com ele.
+- **Em produção o Next sanitiza erros lançados no render de Server Component**
+  antes de chegarem ao `error.tsx`: a `error.message` em português do `ApiError`
+  vira um parágrafo técnico em inglês. As duas rotas que consomem a API tratam
+  isso, por caminhos diferentes — ao mexer em qualquer uma, saiba qual é qual:
+  - `/imoveis` usa **`try/catch` na própria página**, então a mensagem certa nunca
+    cruza a fronteira e é exibida como veio. Erro que não seja `ApiError` é
+    re-lançado (bug de código não vira mensagem amigável). O "Tentar novamente" é
+    o `RetryButton` client com `useRouter().refresh()`, já que não existe
+    `reset()` do boundary. **Prefira esse padrão em tela nova.**
+  - `/imoveis/[id]` usa **`error.tsx`**, exigido pelos critérios da task, e por
+    isso não pode confiar na mensagem que chega: `resolveErrorMessage`
+    (`src/lib/messages.ts`) só exibe o que está numa allowlist e cai num texto
+    genérico em português para o resto. Ver `imoveis/[id]/CLAUDE.md`.
+- **Carregamento via `imoveis/loading.tsx`** (Suspense nativo do App Router), não
+  `useState(isLoading)`.
+- **Paginação com `next/link`, não `onClick`.** Um `<Link>` para a URL da outra
+  página re-executa a busca no servidor e mantém o histórico do browser. O estado
+  desabilitado é `<span aria-disabled>`, nunca um `<a>` sem `href` (seria focável
+  como link ativo).
 
 ## Business logic
 
 - Os query params da busca usam os nomes do contrato da API (`SearchFilters` em
-  `src/lib/types.ts`): `q` e `transaction_type` (`sale` | `rent`). Os antigos
-  `?cidade=&precoMax=` dos links placeholder da Home eram descartáveis e saíram
-  junto com ela; não ressuscite essa nomenclatura.
-- `/imoveis` **nunca** valida nem exige query params. Sem params → estado vazio,
-  não erro. Params desconhecidos (`?foo=bar`) são apenas exibidos, sem rejeição —
-  filtragem real é responsabilidade da task de busca.
-- Params repetidos (`?amenities=a&amenities=b`) chegam como array e são exibidos
-  unidos por vírgula. Só `undefined` é descartado; string vazia é valor válido.
+  `src/lib/types.ts`). Nada de `?cidade=&precoMax=`: essa nomenclatura saiu com os
+  links placeholder da Home e não deve voltar.
+- `/imoveis` **nunca** valida nem exige query params: valor inválido é
+  **descartado**, não gera erro. `?min_price=` / `?min_price=abc` / `?bedrooms=-1`
+  / `?bedrooms=1.5` / `?transaction_type=xyz` simplesmente não viram filtro;
+  `page` inválido ou `< 1` cai em `1`. Zero é valor válido (`?bedrooms=0`).
+  Params desconhecidos (`?foo=bar`) são ignorados em silêncio. Sem params → busca
+  sem filtros, não erro.
+- Params repetidos (`?city=a&city=b`) chegam como array; campos escalares usam a
+  **primeira** ocorrência. Ao trocar de página, porém, `buildPageHref` preserva
+  **todos** os params originais (inclusive repetidos e desconhecidos) e sobrescreve
+  só `page` — a URL do usuário não é "limpa" pelas nossas costas.
+- `per_page`, `sort` e `amenities` existem em `SearchFilters` mas **não** são lidos
+  da URL: o `per_page` efetivo é o que a API devolve na resposta.
+- Lista vazia não é erro. `data: []` → "Nenhum imóvel encontrado…"; se a página
+  corrente for `> 1` (pedido além do total, ver `src/lib/CLAUDE.md`), há um link de
+  volta para a primeira página.
+- A contagem vem de `response.total` com singular/plural ("1 imóvel encontrado" /
+  "42 imóveis encontrados") e só aparece quando há resultado.
+- O `<aside>` "Filtros" é **espaço reservado** para o painel lateral de outra task.
+  Não implemente filtro nenhum ali sem que essa task chegue.
 - `/imoveis/[id]` busca o imóvel na API. ID inexistente vira `notFound()` a partir
   do `ApiError` com `status === 404` de `getPropertyById`; demais falhas caem no
   `error.tsx` da própria rota. Detalhes em `imoveis/[id]/CLAUDE.md`.
 
 ## Dependencies
 
-- `next` (App Router, `next/link`), `react`, `react-dom`.
+- `next` (App Router, `next/link`, `next/navigation`), `react`, `react-dom`.
 - Dados vêm exclusivamente de `src/lib/api.ts` — nenhuma rota deve chamar `fetch`
-  direto para a `imobhub-api`. Veja `src/lib/CLAUDE.md`. Hoje só `/imoveis/[id]`
-  consome a API.
+  direto para a `imobhub-api`. Veja `src/lib/CLAUDE.md`. Hoje `/imoveis`
+  (`searchProperties`) e `/imoveis/[id]` (`getPropertyById`) consomem a API.
+- `/imoveis` reusa `toTransactionType`/`SEARCH_RESULTS_PATH` de
+  `@/components/searchBarUrl` (módulo puro, sem `'use client'`) para não duplicar
+  a regra de descarte que a barra de busca já implementa, e o `PropertyCard` com
+  `headingLevel={2}` — o grid fica direto sob o `h1` da página.
+- `/imoveis/[id]` usa `PropertyGallery`, `@/lib/format` e `@/lib/messages`.
 
 ## Gotchas
 
@@ -77,3 +115,10 @@ estrutura de rotas e o layout não.
   cor explícita via `.nav-list a`. Links e a marca têm `min-height: 44px` para
   alvo de toque em mobile — manter ao editar.
 - `layout.tsx` fixa `lang="pt-BR"`; toda a UI é em português.
+- **`response.page`/`response.total_pages` são tratados defensivamente.** Se a API
+  devolver algo não finito, a página corrente cai no `page` pedido e a paginação
+  some. Resposta vazia costuma trazer `total_pages: 0`.
+- O alias `@/*` nos **testes** vem de `vitest.config.mts` (`resolve.alias`), não do
+  `tsconfig.json` — sem ele o Vitest não resolve `@/components/...` em import de
+  valor. O arquivo é `.mts` de propósito: como `.ts` o Vite carrega a config em CJS
+  e imprime o aviso de deprecação a cada `npm test`.
