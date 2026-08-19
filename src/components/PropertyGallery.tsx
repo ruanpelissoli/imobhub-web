@@ -5,6 +5,7 @@ import styles from './PropertyGallery.module.css'
 import { isBrokenImage } from './imageFallback'
 import {
   nextPhotoIndex,
+  normalizePhotoIndex,
   photoAlt,
   photoCounterLabel,
   prevPhotoIndex,
@@ -47,7 +48,11 @@ export function PropertyGallery({ title, photos }: PropertyGalleryProps) {
   )
 
   const total = photoList.length
-  const currentPhoto = photoList[currentIndex]
+  // Normaliza em vez de indexar com o índice cru: se o React reaproveitar a
+  // instância com outro imóvel de menos fotos, o índice antigo sobrevive e
+  // apontaria para fora da lista, exibindo "sem fotos" para um imóvel com fotos.
+  const safeIndex = normalizePhotoIndex(currentIndex, total)
+  const currentPhoto = photoList[safeIndex]
   const isCurrentBroken =
     currentPhoto !== undefined && brokenPhotos.has(currentPhoto)
 
@@ -75,8 +80,9 @@ export function PropertyGallery({ title, photos }: PropertyGalleryProps) {
             ref={detectBrokenOnMount}
             className={styles.photo}
             src={currentPhoto}
-            alt={photoAlt(title, currentIndex)}
-            loading="lazy"
+            alt={photoAlt(title, safeIndex)}
+            loading="eager"
+            fetchPriority="high"
             decoding="async"
             onError={() => markBroken(currentPhoto)}
           />
@@ -97,7 +103,7 @@ export function PropertyGallery({ title, photos }: PropertyGalleryProps) {
           </button>
 
           <p className={styles.counter} aria-live="polite">
-            {photoCounterLabel(currentIndex, total)}
+            {photoCounterLabel(safeIndex, total)}
           </p>
 
           <button

@@ -161,6 +161,11 @@
   background-color: #0a4fd6;
 }
 
+.retryButton:disabled {
+  background-color: #7ba4ff;
+  cursor: progress;
+}
+
 .retryButton:focus-visible {
   outline: 3px solid #0b5fff;
   outline-offset: 2px;

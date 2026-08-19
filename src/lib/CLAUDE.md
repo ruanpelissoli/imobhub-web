@@ -10,6 +10,12 @@ português pronta para a UI.
 **Nenhum componente deve chamar `fetch` direto para a API.** Se um endpoint novo
 for necessário, ele nasce aqui.
 
+`messages.ts` guarda os textos de erro voltados ao usuário e a allowlist
+`resolveErrorMessage`. Mora fora de `api.ts` para que um boundary de erro
+`'use client'` possa importá-lo sem arrastar o módulo de rede para o bundle —
+mesmo espírito de `format.ts`. **Mensagem nova de erro nasce aqui**, não como
+literal solto em `api.ts`, senão o `error.tsx` não consegue reconhecê-la.
+
 `format.ts` é coisa diferente e deliberadamente separada: **apresentação pura, sem
 rede** — preço em BRL, área em m², endereço concatenado, contagens no singular ou
 plural. É seguro importar de qualquer componente client; `api.ts` não é (arrasta
@@ -52,6 +58,10 @@ de preço e área: `PropertyCard` e a tela de detalhe consomem daqui
   `invalid_response`.
 - **Nenhum caminho de falha retorna `null` silenciosamente** — todo erro vira
   `ApiError`.
+- `resolveErrorMessage` **não** confia em `error.message` cegamente: em produção o
+  Next redige mensagens de Server Component e entrega um texto em inglês. Só o que
+  está na allowlist é exibido; o resto vira `GENERIC_ERROR_MESSAGE`. Ao adicionar
+  uma mensagem em `messages.ts`, inclua-a no `Set` — senão ela nunca chega à tela.
 - Resultado vazio (`data: []`) e `page` além do total **não são erro**: a
   resposta é propagada como veio.
 

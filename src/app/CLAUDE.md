@@ -28,11 +28,11 @@ estrutura de rotas e o layout não.
 - **`metadata.title` com `template`.** O layout define
   `{ default: 'ImobHub', template: '%s | ImobHub' }`, então cada página exporta só
   o título curto (`'Resultados'`) e o sufixo da marca vem de graça.
-- **Sem framework de CSS.** `globals.css` é o único arquivo de estilo: reset
-  mínimo, utilitárias (`.container`, `.brand`, `.nav-list`) e as classes de
-  componente antigas (`.search-bar*`, `.home-hero*`). Sem Tailwind ou
-  styled-components. **Estilo novo nasce em CSS Module co-locado** (ver
-  `src/components/CLAUDE.md`); `globals.css` fica para reset e utilitários.
+- **Sem framework de CSS.** Nem Tailwind nem styled-components. `globals.css`
+  guarda o reset mínimo, as utilitárias (`.container`, `.brand`, `.nav-list`) e as
+  classes de componente antigas (`.search-bar*`, `.home-hero*`). **Estilo novo
+  nasce em CSS Module co-locado** (ver `src/components/CLAUDE.md`) — `globals.css`
+  fica só para reset e utilitários.
 - **`toDisplayParams` extraído para `imoveis/searchParams.ts`.** Componentes de
   servidor `async` não são triviais de renderizar em teste sem jsdom/plugin React;
   isolar a normalização dos query params numa função pura dá cobertura real dos

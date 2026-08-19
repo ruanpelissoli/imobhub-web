@@ -39,8 +39,11 @@ aqui ainda — vem na task #8.
 - **404 → `notFound()`**: `loadProperty` captura o `ApiError` com `status === 404`
   (via `isApiError`) e devolve `null`; a página chama `notFound()` e cai no
   `src/app/not-found.tsx`. Qualquer outro erro (rede, timeout, 5xx) propaga e cai
-  no `error.tsx`, que reexibe `error.message` — as mensagens de `api.ts` já vêm em
-  português.
+  no `error.tsx`.
+- **O `error.tsx` só exibe `error.message` quando ela está na allowlist de
+  `src/lib/messages.ts`** (`resolveErrorMessage`); qualquer outra coisa vira o
+  texto genérico em português. Ver Gotchas — em produção a mensagem não chega
+  intacta.
 - **`notFound()` fica FORA do `try`.** Ele funciona lançando uma exceção; chamado
   dentro do `catch`/`try` de `loadProperty` seria engolido e viraria erro genérico.
 - Comodidades e descrição: a seção inteira **não é renderizada** quando o campo é
@@ -59,8 +62,9 @@ aqui ainda — vem na task #8.
 
 - `src/lib/api.ts` (`getPropertyById`, `isApiError`) — nenhuma chamada `fetch`
   direta aqui, ver `src/lib/CLAUDE.md`.
-- `src/lib/format.ts`, `src/components/PropertyGallery.tsx`.
-- Estilos `.property-*` em `src/app/globals.css`.
+- `src/lib/format.ts`, `src/lib/messages.ts`, `src/components/PropertyGallery.tsx`.
+- Estilos em `propertyDetail.module.css` (co-locado) e
+  `src/components/PropertyGallery.module.css`.
 
 ## Gotchas
 
@@ -70,8 +74,18 @@ aqui ainda — vem na task #8.
   `src/lib/types.ts` do repo modela `title`/`address`/`price`. Alinhar afetaria
   `searchProperties`, `api.test.ts` e a task #8, então ficou fora do escopo aqui.
   Mitigação: todos os formatadores toleram campo ausente em runtime (título vazio
-  → "Imóvel", preço ausente → "Preço não informado", endereço junta só o que
-  existir), então a tela degrada em vez de quebrar.
+  → "Imóvel", preço ausente → `PRICE_ON_REQUEST` ("Preço sob consulta"), endereço
+  junta só o que existir), então a tela degrada em vez de quebrar.
+- **Em produção o Next redige a mensagem de erros de Server Component** antes de
+  entregá-la ao boundary de client: `error.message` chega como um parágrafo
+  técnico em inglês ("An error occurred in the Server Components render…"). Como
+  não é string vazia, um fallback do tipo `error.message || 'texto'` **não**
+  dispara e o usuário vê inglês. Por isso a allowlist em `resolveErrorMessage`.
+  Em `next dev` a mensagem chega intacta, então o bug não aparece na validação
+  manual — só em `next build && next start`.
+- **`reset()` sozinho não refaz o fetch** quando o erro veio do servidor: ele
+  re-renderiza o boundary a partir do payload RSC que já falhou. Daí o
+  `router.refresh()` junto, dentro de `startTransition`. Não remova um dos dois.
 - A página não renderiza header próprio nem `<main>` — `layout.tsx` já fornece
   ambos.
 - No Next 15 `params` é `Promise` e precisa de `await`.

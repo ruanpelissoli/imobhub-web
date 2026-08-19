@@ -1,3 +1,11 @@
+import {
+  CLIENT_ERROR_MESSAGE,
+  INVALID_RESPONSE_MESSAGE,
+  NETWORK_ERROR_MESSAGE,
+  PROPERTY_NOT_FOUND_MESSAGE,
+  SERVER_ERROR_MESSAGE,
+  TIMEOUT_ERROR_MESSAGE,
+} from './messages'
 import type {
   PaginatedResponse,
   Property,
@@ -39,14 +47,6 @@ export class ApiError extends Error {
 export function isApiError(error: unknown): error is ApiError {
   return error instanceof ApiError
 }
-
-const NETWORK_ERROR_MESSAGE = 'Não foi possível conectar ao servidor.'
-const TIMEOUT_ERROR_MESSAGE = 'A requisição demorou demais. Tente novamente.'
-const INVALID_RESPONSE_MESSAGE = 'Resposta inválida do servidor.'
-const SERVER_ERROR_MESSAGE = 'Erro no servidor. Tente novamente em instantes.'
-const CLIENT_ERROR_MESSAGE =
-  'Requisição inválida. Verifique os filtros e tente novamente.'
-const PROPERTY_NOT_FOUND_MESSAGE = 'Imóvel não encontrado.'
 
 type QueryValue = string | number | boolean | string[] | null | undefined
 

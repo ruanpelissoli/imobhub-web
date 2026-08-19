@@ -118,11 +118,20 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
   protection, URL expirada — dispara nessa janela e ninguém escuta. Por isso o
   `ref` callback checa `isBrokenImage` (`complete && naturalWidth === 0`) no
   mount. **Não remova o ref "limpando" o componente**: ele cobre a falha que já
-  aconteceu, o `onError` cobre a que ainda vai acontecer (inclusive com
-  `loading="lazy"`, que só dispara o request quando a imagem entra no viewport).
+  aconteceu, o `onError` cobre a que ainda vai acontecer — no card, com
+  `loading="lazy"`, o request só sai quando a imagem entra no viewport, então a
+  falha costuma chegar bem depois da hidratação.
+- **`loading` difere por posição, de propósito.** O card usa `lazy` (grid de N
+  itens abaixo da dobra); a galeria usa `eager` + `fetchPriority="high"`, porque a
+  foto principal do detalhe é a candidata a LCP da página mais acessada do produto
+  e o lazy faria o browser esperar o layout para só então baixar.
 - Card e galeria guardam **qual `src` falhou**, não um booleano. Se o React
   reaproveitar a instância com outra foto, o reset é automático e não depende de o
-  consumidor passar `key`.
+  consumidor passar `key`. Pelo mesmo motivo a galeria indexa por
+  `normalizePhotoIndex(currentIndex, total)` e não pelo índice cru: numa navegação
+  `/imoveis/1` → `/imoveis/2` o `currentIndex` sobrevive, e se o imóvel novo tiver
+  menos fotos o índice antigo apontaria para fora da lista — exibindo "Sem fotos
+  disponíveis" para um imóvel que tem fotos.
 - **Nada de elemento interativo dentro do card.** O `<Link>` envolve o card
   inteiro; aninhar `<button>`/`<a>` produz HTML inválido e quebra a navegação por
   teclado. Favoritar/compartilhar terá que reestruturar isso.
