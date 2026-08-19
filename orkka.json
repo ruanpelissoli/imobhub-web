@@ -1,0 +1,16 @@
+{
+  "run": {
+    "targets": [
+      {
+        "key": "web",
+        "label": "ImobHub Web",
+        "kind": "web",
+        "command": "npm run dev",
+        "installCommand": "npm install",
+        "port": 3000,
+        "previewPath": "/",
+        "restartOnMerge": true
+      }
+    ]
+  }
+}
