@@ -19,6 +19,11 @@ const stylesheets = [
     literalFree: true,
   },
   {
+    name: 'src/components/FilterPanel.module.css',
+    css: read('../components/FilterPanel.module.css'),
+    literalFree: false,
+  },
+  {
     name: 'src/app/imoveis/page.module.css',
     css: read('./imoveis/page.module.css'),
     literalFree: false,

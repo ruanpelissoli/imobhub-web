@@ -6,10 +6,11 @@ Esqueleto navegacional do ImobHub: o root layout compartilhado e as três rotas
 principais do produto (`/`, `/imoveis`, `/imoveis/[id]`) mais a página 404.
 
 As três rotas já são telas de verdade. A Home navega para `/imoveis` com os
-filtros na URL; `/imoveis` lê esses filtros, chama `searchProperties` e renderiza
-o grid de `PropertyCard` com contagem e paginação; `/imoveis/[id]` chama
-`getPropertyById` e mostra galeria e dados canônicos, com as fronteiras
-`loading`/`error`/`notFound` (ver `imoveis/[id]/CLAUDE.md`).
+filtros na URL; `/imoveis` lê esses filtros, chama `searchProperties`, renderiza
+o grid de `PropertyCard` com contagem e paginação e oferece o `FilterPanel`
+lateral para refinar a busca; `/imoveis/[id]` chama `getPropertyById` e mostra
+galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
+`imoveis/[id]/CLAUDE.md`).
 
 ## Key decisions
 
@@ -63,6 +64,16 @@ o grid de `PropertyCard` com contagem e paginação; `/imoveis/[id]` chama
     isso não pode confiar na mensagem que chega: `resolveErrorMessage`
     (`src/lib/messages.ts`) só exibe o que está numa allowlist e cai num texto
     genérico em português para o resto. Ver `imoveis/[id]/CLAUDE.md`.
+- **A URL é a única fonte de verdade dos filtros.** `/imoveis` lê os params uma
+  vez (`parseSearchFilters`) e passa o resultado como `defaults` para o
+  `FilterPanel`, junto de `currentQuery` (`toSearchParams(raw).toString()`, a
+  query crua, que o painel usa para preservar `q` e params desconhecidos ao
+  aplicar). O painel não lê a URL com `useSearchParams()` — isso exigiria
+  boundary de Suspense e duplicaria a leitura. `toSearchParams` foi extraído de
+  `buildPageHref`, que continua sobrescrevendo só `page`.
+- **`key={currentQuery}` no `<FilterPanel>`.** O painel é formulário não
+  controlado; sem remount os `defaultValue` não se reaplicam ao voltar/avançar no
+  browser ou ao paginar. Ver `src/components/CLAUDE.md`.
 - **Carregamento via `imoveis/loading.tsx`** (Suspense nativo do App Router), não
   `useState(isLoading)`.
 - **Paginação com `next/link`, não `onClick`.** Um `<Link>` para a URL da outra
@@ -92,8 +103,10 @@ o grid de `PropertyCard` com contagem e paginação; `/imoveis/[id]` chama
   volta para a primeira página.
 - A contagem vem de `response.total` com singular/plural ("1 imóvel encontrado" /
   "42 imóveis encontrados") e só aparece quando há resultado.
-- O `<aside>` "Filtros" é **espaço reservado** para o painel lateral de outra task.
-  Não implemente filtro nenhum ali sem que essa task chegue.
+- O `<aside>` "Filtros" **deixou de ser espaço reservado**: é o `FilterPanel`
+  (`src/components/`), renderizado **fora** dos blocos condicionais de erro e de
+  lista vazia — o usuário precisa poder corrigir justamente o filtro que zerou a
+  busca. O `<aside>` de `loading.tsx` continua sendo um esqueleto estático.
 - `/imoveis/[id]` busca o imóvel na API. ID inexistente vira `notFound()` a partir
   do `ApiError` com `status === 404` de `getPropertyById`; demais falhas caem no
   `error.tsx` da própria rota. Detalhes em `imoveis/[id]/CLAUDE.md`.
@@ -145,8 +158,9 @@ o grid de `PropertyCard` com contagem e paginação; `/imoveis/[id]` chama
   A escala canônica é mobile ≤640px / tablet 641–1024px / desktop ≥1025px; as
   media queries de 48rem ainda não seguem essa escala (dívida consciente —
   realinhar muda o layout e é task própria).
-- **`page.module.css` e `[id]/propertyDetail.module.css` estão migrados só em
-  parte.** Chegaram de `main` depois que `tokens.css` já existia. Tudo que tinha
+- **`page.module.css`, `[id]/propertyDetail.module.css` e o `FilterPanel.module.css`
+  estão migrados só em parte.** Chegaram de `main` depois que `tokens.css` já
+  existia. Tudo que tinha
   equivalente exato na tabela virou `var(--*)`; sobraram os literais cujo token
   a spec aprovada não define, e que **não** foram colapsados de propósito — mexer
   no tom de tela recém-mergeada de outra pessoa seria mudança visual não
@@ -154,7 +168,8 @@ o grid de `PropertyCard` com contagem e paginação; `/imoveis/[id]` chama
   `designTokens.test.ts`: a checagem de `var()` indefinido vale, a proibição de
   literal não. Para fechar, faltam quatro tokens:
   - um cinza de superfície sutil que colapse `#f4f6fa` / `#f7f8fa` / `#f2f4f7`
-    (três quase-idênticos, inventados por três telas diferentes);
+    (três quase-idênticos, inventados por telas diferentes; `#f7f8fa` já aparece
+    em dois arquivos, que é a deriva começando de novo);
   - o azul desabilitado `#7ba4ff` do `.retryButton:disabled` do detalhe;
   - o par fundo/borda do bloco de erro (`#fdf3f3` / `#f0c2c2`) — `--color-error`
     não cobre, ele é o tom de **texto**, e o texto atual (`#8c2f2f`) é um quarto

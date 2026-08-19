@@ -4,6 +4,7 @@ import {
   buildPagination,
   formatResultCount,
   parseSearchFilters,
+  toSearchParams,
 } from './searchFilters'
 
 describe('parseSearchFilters', () => {
@@ -125,6 +126,30 @@ describe('parseSearchFilters', () => {
     expect(parseSearchFilters({ page: '0' }).page).toBe(1)
     expect(parseSearchFilters({ page: '-2' }).page).toBe(1)
     expect(parseSearchFilters({ page: '1.5' }).page).toBe(1)
+  })
+})
+
+describe('toSearchParams', () => {
+  it('preserva params repetidos', () => {
+    expect(
+      toSearchParams({ amenities: ['piscina', 'academia'] }).toString(),
+    ).toBe('amenities=piscina&amenities=academia')
+  })
+
+  it('preserva page e params desconhecidos', () => {
+    expect(toSearchParams({ q: 'casa', foo: 'bar', page: '3' }).toString()).toBe(
+      'q=casa&foo=bar&page=3',
+    )
+  })
+
+  it('ignora valor undefined', () => {
+    expect(toSearchParams({ q: 'casa', city: undefined }).toString()).toBe(
+      'q=casa',
+    )
+  })
+
+  it('devolve query string vazia quando não há param', () => {
+    expect(toSearchParams({}).toString()).toBe('')
   })
 })
 

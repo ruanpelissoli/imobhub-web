@@ -7,19 +7,13 @@
 .filters {
   min-width: 0;
   padding: var(--space-5);
-  border: 1px dashed var(--color-border-strong);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-card);
   background-color: #f7f8fa;
 }
 
 .filtersTitle {
   font-size: var(--text-base);
-}
-
-.filtersHint {
-  margin-top: var(--space-1);
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
 }
 
 .results {
