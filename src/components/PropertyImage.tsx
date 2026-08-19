@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import styles from './PropertyCard.module.css'
+import { isBrokenImage } from './propertyCard.format'
 
 export interface PropertyImageProps {
   src: string | null
@@ -31,7 +32,14 @@ function Placeholder() {
 }
 
 export function PropertyImage({ src, alt }: PropertyImageProps) {
-  const [failed, setFailed] = useState(false)
+  const [failedSrc, setFailedSrc] = useState<string | null>(null)
+  const failed = src !== null && src === failedSrc
+
+  // O <img> vem no HTML do servidor e pode falhar antes da hidratação anexar o
+  // onError; o ref pega essa falha já ocorrida, o onError pega as posteriores.
+  const detectBrokenOnMount = (node: HTMLImageElement | null) => {
+    if (isBrokenImage(node)) setFailedSrc(src)
+  }
 
   if (!src || failed) {
     return (
@@ -45,12 +53,13 @@ export function PropertyImage({ src, alt }: PropertyImageProps) {
     <div className={styles.media}>
       {/* eslint-disable-next-line @next/next/no-img-element -- fotos vêm de hosts arbitrários de scraping; next/image exigiria remotePatterns fechado */}
       <img
+        ref={detectBrokenOnMount}
         className={styles.photo}
         src={src}
         alt={alt}
         loading="lazy"
         decoding="async"
-        onError={() => setFailed(true)}
+        onError={() => setFailedSrc(src)}
       />
     </div>
   )

@@ -5,6 +5,7 @@ import {
   formatLocation,
   formatPrice,
   getPrimaryPhoto,
+  isBrokenImage,
   PRICE_ON_REQUEST,
   type PropertyAttributesInput,
 } from './propertyCard.format'
@@ -121,6 +122,24 @@ describe('buildAttributes', () => {
 
   it('retorna lista vazia quando todos os atributos são omitidos', () => {
     expect(buildAttributes(baseAttributes)).toEqual([])
+  })
+})
+
+describe('isBrokenImage', () => {
+  it('detecta imagem que terminou de carregar sem pixels', () => {
+    expect(isBrokenImage({ complete: true, naturalWidth: 0 })).toBe(true)
+  })
+
+  it('não acusa imagem carregada com sucesso', () => {
+    expect(isBrokenImage({ complete: true, naturalWidth: 800 })).toBe(false)
+  })
+
+  it('não acusa imagem que ainda está carregando', () => {
+    expect(isBrokenImage({ complete: false, naturalWidth: 0 })).toBe(false)
+  })
+
+  it('não acusa quando não há elemento montado', () => {
+    expect(isBrokenImage(null)).toBe(false)
   })
 })
 

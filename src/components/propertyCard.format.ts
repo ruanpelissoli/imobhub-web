@@ -81,6 +81,15 @@ export function buildAttributes(property: PropertyAttributesInput): PropertyAttr
   return attributes
 }
 
+export interface ImageLoadState {
+  complete: boolean
+  naturalWidth: number
+}
+
+export function isBrokenImage(image: ImageLoadState | null): boolean {
+  return image !== null && image.complete && image.naturalWidth === 0
+}
+
 export function getPrimaryPhoto(photos: Property['photos']): string | null {
   const found = (photos ?? []).find(
     (photo) => typeof photo === 'string' && photo.trim().length > 0,

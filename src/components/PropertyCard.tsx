@@ -11,11 +11,13 @@ import {
 
 export interface PropertyCardProps {
   property: Property
+  headingLevel?: 2 | 3 | 4
 }
 
-export function PropertyCard({ property }: PropertyCardProps) {
+export function PropertyCard({ property, headingLevel = 3 }: PropertyCardProps) {
   const attributes = buildAttributes(property)
   const location = formatLocation(property.neighborhood, property.city)
+  const Heading = `h${headingLevel}` as const
 
   return (
     <Link href={`/imoveis/${property.id}`} className={styles.card}>
@@ -24,7 +26,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
 
         <div className={styles.body}>
           <p className={styles.price}>{formatPrice(property.price)}</p>
-          <h3 className={styles.title}>{property.title}</h3>
+          <Heading className={styles.title}>{property.title}</Heading>
           {location.length > 0 && <p className={styles.location}>{location}</p>}
 
           {attributes.length > 0 && (
@@ -39,5 +41,3 @@ export function PropertyCard({ property }: PropertyCardProps) {
     </Link>
   )
 }
-
-export default PropertyCard
