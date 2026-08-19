@@ -23,10 +23,21 @@ substituído sem cerimônia, a estrutura de rotas e o layout não.
 - **`metadata.title` com `template`.** O layout define
   `{ default: 'ImobHub', template: '%s | ImobHub' }`, então cada página exporta só
   o título curto (`'Resultados'`) e o sufixo da marca vem de graça.
-- **Sem framework de CSS.** `globals.css` é o único arquivo de estilo: reset
-  mínimo, utilitárias (`.container`, `.brand`, `.nav-list`) e as classes de
-  componente (`.search-bar*`, `.home-hero*`). Sem CSS Modules, Tailwind ou
-  styled-components — telas novas seguem esse padrão.
+- **Sem framework de CSS.** `globals.css` traz reset mínimo, utilitárias
+  (`.container`, `.brand`, `.nav-list`) e as classes de componente
+  (`.search-bar*`, `.home-hero*`). Sem Tailwind ou styled-components. Componente
+  novo nasce com CSS Module co-locado (ver `src/components/CLAUDE.md`);
+  `globals.css` fica para reset e utilitários de layout.
+- **`tokens.css` é a fonte única de cor, fonte, raio, sombra e espaçamento.**
+  `globals.css` faz `@import './tokens.css'` na **primeira** linha (o CSS ignora
+  `@import` que venha depois de qualquer regra; o pipeline do Next inlina o
+  arquivo no topo do bundle). **Nenhum valor literal de cor, fonte, raio ou
+  sombra em arquivo que não seja `tokens.css`** — `designTokens.test.ts` reprova
+  o build se um escapar. Literal só é legítimo para dimensão específica
+  (`72rem` de container, `44px` de alvo de toque, `48rem` da media query).
+- **`--color-surface` faz duplo papel como texto sobre o azul** (`.search-bar__submit`).
+  A spec de tokens não define `--color-on-primary`; se um dia entrar tema escuro,
+  esse é o primeiro ponto a virar token próprio.
 - **`toDisplayParams` extraído para `imoveis/searchParams.ts`.** Componentes de
   servidor `async` não são triviais de renderizar em teste sem jsdom/plugin React;
   isolar a normalização dos query params numa função pura dá cobertura real dos
@@ -72,3 +83,14 @@ substituído sem cerimônia, a estrutura de rotas e o layout não.
   cor explícita via `.nav-list a`. Links e a marca têm `min-height: 44px` para
   alvo de toque em mobile — manter ao editar.
 - `layout.tsx` fixa `lang="pt-BR"`; toda a UI é em português.
+- **`var(--typo)` falha em silêncio.** Um nome de token errado não gera erro de
+  build nem de lint — o CSS descarta a declaração e o elemento fica sem cor ou
+  sem raio. É a falha mais provável ao mexer em estilo aqui, e a única coisa que
+  a pega é `designTokens.test.ts`, que confere que todo `var(--x)` usado está
+  definido em `tokens.css`.
+- **Custom property não funciona dentro de `@media`.**
+  `@media (min-width: var(--bp-tablet))` é inválido e ignorado sem aviso — por
+  isso os breakpoints são bloco de comentário em `tokens.css`, não variáveis.
+  A escala canônica é mobile ≤640px / tablet 641–1024px / desktop ≥1025px; a
+  media query de 48rem da barra de busca ainda não segue essa escala (dívida
+  consciente — realinhar muda o layout e é task própria).
