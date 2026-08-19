@@ -43,7 +43,7 @@ Se `NEXT_PUBLIC_API_URL` não estiver definida, o cliente HTTP usa
 | Rota            | Tela                                                                   |
 | --------------- | ---------------------------------------------------------------------- |
 | `/`             | Home — headline e barra de busca                                       |
-| `/imoveis`      | Resultados — grid de imóveis da API com paginação, lido dos query params |
+| `/imoveis`      | Resultados — painel de filtros e grid de imóveis da API com paginação   |
 | `/imoveis/[id]` | Detalhe do imóvel                                                      |
 | qualquer outra  | 404                                                                    |
 
@@ -52,6 +52,11 @@ Os nomes dos query params seguem o contrato da `imobhub-api` (`SearchFilters` em
 `rent` para "Alugar"), `property_type`, `min_price`, `max_price`, `bedrooms`,
 `bathrooms`, `parking_spots`, `min_area`, `city`, `neighborhood` e `page`. Valor
 inválido é descartado silenciosamente — a busca nunca falha por causa da URL.
+
+O painel lateral de `/imoveis` sincroniza bidirecionalmente com esses params: ele
+nasce pré-preenchido com os valores válidos da URL, "Aplicar filtros" reescreve os
+params a partir do formulário (voltando para a primeira página e preservando `q`),
+e "Limpar filtros" os remove. A URL continua sendo o que dispara a nova busca.
 
 `/imoveis/[id]` ainda é placeholder: exibe o `id` recebido, sem consumo de dados
 reais.

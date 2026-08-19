@@ -7,19 +7,13 @@
 .filters {
   min-width: 0;
   padding: 1rem;
-  border: 1px dashed #c7cdd8;
+  border: 1px solid #c7cdd8;
   border-radius: 0.75rem;
   background-color: #f7f8fa;
 }
 
 .filtersTitle {
   font-size: 1rem;
-}
-
-.filtersHint {
-  margin-top: 0.25rem;
-  color: #5a6072;
-  font-size: 0.875rem;
 }
 
 .results {

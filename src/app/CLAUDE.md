@@ -6,8 +6,9 @@ Esqueleto navegacional do ImobHub: o root layout compartilhado e as três rotas
 principais do produto (`/`, `/imoveis`, `/imoveis/[id]`) mais a página 404.
 
 A Home (`/`) e `/imoveis` já são telas de verdade: a Home navega para `/imoveis`
-com os filtros na URL, e `/imoveis` lê esses filtros, chama `searchProperties` e
-renderiza o grid de `PropertyCard` com contagem e paginação. `/imoveis/[id]`
+com os filtros na URL, e `/imoveis` lê esses filtros, chama `searchProperties`,
+renderiza o grid de `PropertyCard` com contagem e paginação e oferece o
+`FilterPanel` lateral para refinar a busca. `/imoveis/[id]`
 segue **placeholder**, exibindo o `id` recebido; o detalhe com dados reais vem em
 task seguinte e pendura nesse esqueleto — o conteúdo dessa página pode ser
 substituído sem cerimônia, a estrutura de rotas e o layout não.
@@ -41,6 +42,16 @@ substituído sem cerimônia, a estrutura de rotas e o layout não.
   seja `ApiError` é re-lançado (bug de código não vira mensagem amigável). O
   "Tentar novamente" é o `RetryButton` client com `useRouter().refresh()`, já que
   não existe `reset()` do boundary.
+- **A URL é a única fonte de verdade dos filtros.** `/imoveis` lê os params uma
+  vez (`parseSearchFilters`) e passa o resultado como `defaults` para o
+  `FilterPanel`, junto de `currentQuery` (`toSearchParams(raw).toString()`, a
+  query crua, que o painel usa para preservar `q` e params desconhecidos ao
+  aplicar). O painel não lê a URL com `useSearchParams()` — isso exigiria
+  boundary de Suspense e duplicaria a leitura. `toSearchParams` foi extraído de
+  `buildPageHref`, que continua sobrescrevendo só `page`.
+- **`key={currentQuery}` no `<FilterPanel>`.** O painel é formulário não
+  controlado; sem remount os `defaultValue` não se reaplicam ao voltar/avançar no
+  browser ou ao paginar. Ver `src/components/CLAUDE.md`.
 - **Carregamento via `imoveis/loading.tsx`** (Suspense nativo do App Router), não
   `useState(isLoading)`.
 - **Paginação com `next/link`, não `onClick`.** Um `<Link>` para a URL da outra
@@ -70,8 +81,10 @@ substituído sem cerimônia, a estrutura de rotas e o layout não.
   volta para a primeira página.
 - A contagem vem de `response.total` com singular/plural ("1 imóvel encontrado" /
   "42 imóveis encontrados") e só aparece quando há resultado.
-- O `<aside>` "Filtros" é **espaço reservado** para o painel lateral de outra task.
-  Não implemente filtro nenhum ali sem que essa task chegue.
+- O `<aside>` "Filtros" **deixou de ser espaço reservado**: é o `FilterPanel`
+  (`src/components/`), renderizado **fora** dos blocos condicionais de erro e de
+  lista vazia — o usuário precisa poder corrigir justamente o filtro que zerou a
+  busca. O `<aside>` de `loading.tsx` continua sendo um esqueleto estático.
 - `/imoveis/[id]` exibe o `id` cru, numérico ou não (`/imoveis/abc` renderiza
   normalmente). Não há checagem contra a API; imóvel inexistente será tratado na
   task de detalhe com dados reais, provavelmente com `notFound()` sobre o

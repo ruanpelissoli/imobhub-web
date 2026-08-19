@@ -10,6 +10,10 @@ Componentes reutilizados por mais de uma rota:
 - **`PropertyCard`** — card de imóvel dos destaques da Home e do grid de
   `/imoveis`. Recebe dados por prop (`property: Property`) e **nunca chama a
   API** — quem busca é a página. `propertyCard.format.ts` guarda a formatação.
+- **`FilterPanel`** — painel lateral de filtros de `/imoveis`. Recebe os valores
+  vigentes por prop (`defaults: SearchFilters`) e a query string corrente
+  (`currentQuery`), e navega com `router.push`. `filterPanelUrl.ts` guarda a
+  lógica pura de montar/limpar a URL e a lista de tipos de imóvel.
 
 Padrão do diretório: o `.tsx` cuida de markup e boundary de client; toda regra
 testável mora num módulo `.ts` co-locado, porque o projeto usa Vitest **sem
@@ -50,6 +54,17 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
 - **`aspect-ratio: 4 / 3` no contêiner da mídia** + `object-fit: cover` na foto:
   a altura do card não depende da imagem carregar, então o grid não pula quando
   uma foto falha.
+- **`FilterPanel` é `'use client'`, `/imoveis` continua Server Component.** Mesmo
+  padrão do `SearchBar`: formulário não controlado, `FormData` no `onSubmit`.
+- **A URL é lida só pela página, nunca por `useSearchParams()` no painel.** A
+  página passa `defaults` (de `parseSearchFilters`) e `currentQuery` (de
+  `toSearchParams`) por prop, evitando o boundary de Suspense que
+  `useSearchParams()` exigiria e mantendo uma única fonte de leitura da URL.
+- **Lista fixa de `property_type` em `PROPERTY_TYPE_OPTIONS`.** A API não expõe
+  endpoint que enumere os valores; a lista é uma **premissa** e é o único ponto a
+  editar quando o contrato real for conhecido. Valor fora dela é descartado.
+- **Amenidades ficam de fora.** `amenities` é só `string[]` em `Property`, sem
+  enumeração possível para renderizar checklist. `per_page` e `sort` idem.
 - **Export nomeado, um componente por arquivo.** É a convenção do resto do
   projeto (`api.ts`, `types.ts`, `searchFilters.ts`); `export default` só onde o
   App Router exige (`page.tsx`, `layout.tsx`). `SearchBar` ainda usa `default`
@@ -66,6 +81,31 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
 - Sem nenhum filtro, o retorno é `/imoveis` puro, sem `?` pendurado.
 - O submit é `onSubmit` no `<form>`, não `onClick` no botão: Enter no campo de
   texto também precisa navegar.
+
+### FilterPanel
+
+- **`Todos`/`Qualquer` = param ausente.** Ao contrário do `SearchBar` (cujo
+  default é `sale`), o painel **não** tem filtro implícito: pré-selecionar
+  "Comprar" quando a URL não traz `transaction_type` seria mentir sobre o
+  resultado exibido.
+- Regras de omissão iguais às de `buildSearchUrl`/`parseSearchFilters`: texto
+  vazio ou só com espaços, valor não numérico, negativo, fracionário em campo de
+  contagem, `transaction_type`/`property_type` fora do contrato → **param não é
+  emitido**. **Zero é válido e é enviado** (`parking_spots=0`).
+- `4+` envia `bedrooms=4`, `3+` envia `bathrooms=3`, `2+` envia
+  `parking_spots=2` — o backend trata o valor como mínimo. No pré-preenchimento o
+  caminho inverso escolhe a maior opção `<=` valor da URL, então `?bedrooms=7`
+  marca `4+`.
+- Aplicar **reescreve todos** os params do painel a partir do formulário e
+  **remove `page`** (reset de paginação); `q` e params desconhecidos (inclusive
+  repetidos) são preservados na ordem original. Limpar faz só a remoção e navega
+  imediatamente, sem exigir "Aplicar" depois.
+- `property_type` fora de `PROPERTY_TYPE_OPTIONS` cai em `Qualquer` no
+  pré-preenchimento e **some ao aplicar** — intencional: o `<select>` não pode
+  exibir opção que não existe, e manter o param escondido faria o painel mentir.
+- **Sem validação cruzada** de `min_price > max_price`: a tela nunca bloqueia o
+  submit; a API decide o resultado e o estado vazio já existe.
+- Nenhum filtro preenchido → `/imoveis` puro, sem `?` pendurado.
 
 ### PropertyCard
 
@@ -98,6 +138,12 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
 
 - `useRouter` **tem** que vir de `next/navigation`. O de `next/router` é Pages
   Router e quebra em runtime no App Router.
+- **Formulário não controlado não se reidrata sozinho quando a URL muda.** Se o
+  React reaproveitar a instância do `FilterPanel` (voltar/avançar no browser,
+  clicar em "Próximo"), os `defaultValue` não são reaplicados e o painel passa a
+  mentir sobre a busca vigente. Por isso `/imoveis` passa `key={currentQuery}`,
+  forçando remount. O preço é perder o foco do campo após aplicar — aceitável
+  num painel de sidebar, e o alternativo seria espelhar o DOM em `useState`.
 - `URLSearchParams` codifica espaço como `+`, não `%20` (form-urlencoded). É
   válido e o Next decodifica corretamente — os testes esperam `+`.
 - **`onError` sozinho não cobre foto quebrada.** O card renderiza no servidor, o

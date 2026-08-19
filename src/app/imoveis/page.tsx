@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { FilterPanel } from '@/components/FilterPanel'
 import { PropertyCard } from '@/components/PropertyCard'
 import { isApiError, searchProperties } from '@/lib/api'
 import type { PaginatedResponse, Property } from '@/lib/types'
@@ -9,24 +10,12 @@ import {
   buildPagination,
   formatResultCount,
   parseSearchFilters,
+  toSearchParams,
   type RawSearchParams,
 } from './searchFilters'
 
 export const metadata = {
   title: 'Resultados',
-}
-
-function FiltersPlaceholder() {
-  return (
-    <aside className={styles.filters} aria-labelledby="filtros-titulo">
-      <h2 id="filtros-titulo" className={styles.filtersTitle}>
-        Filtros
-      </h2>
-      <p className={styles.filtersHint}>
-        O refinamento por preço, tipo e características chega em breve.
-      </p>
-    </aside>
-  )
 }
 
 export default async function ResultadosPage({
@@ -36,6 +25,7 @@ export default async function ResultadosPage({
 }) {
   const raw = await searchParams
   const filters = parseSearchFilters(raw)
+  const currentQuery = toSearchParams(raw).toString()
 
   let response: PaginatedResponse<Property> | null = null
   let errorMessage: string | null = null
@@ -65,7 +55,11 @@ export default async function ResultadosPage({
       <h1 className="page-title">Resultados</h1>
 
       <div className={styles.layout}>
-        <FiltersPlaceholder />
+        <FilterPanel
+          key={currentQuery}
+          defaults={filters}
+          currentQuery={currentQuery}
+        />
 
         <div className={styles.results}>
           {errorMessage !== null && (
