@@ -1,0 +1,69 @@
+/*
+ * Design tokens ImobHub — fonte única de cor, tipografia, raio, sombra e espaçamento.
+ * Este é o ÚNICO arquivo de estilo onde valores literais são permitidos.
+ *
+ * Breakpoints (escala canônica, documental):
+ *   mobile   ≤ 640px
+ *   tablet   641px – 1024px
+ *   desktop  ≥ 1025px
+ * Não existem variáveis --bp-*: custom property não é avaliada dentro de @media
+ * (`@media (min-width: var(--bp-tablet))` é inválido e ignorado em silêncio).
+ * Escreva o valor literal na media query e use esta tabela como referência.
+ * Dívida conhecida: a media query de 48rem em globals.css ainda não segue esta escala.
+ */
+
+:root {
+  /* Cor */
+  --color-primary: #0b5fff;
+  --color-primary-dark: #0a4fd6;
+  --color-primary-soft: #eef3ff;
+
+  --color-surface: #ffffff;
+  --color-surface-muted: #eef0f4;
+
+  --color-text: #16181d;
+  --color-text-strong: #3c4354;
+  --color-text-muted: #5a6072;
+  --color-text-subtle: #9aa1b1;
+
+  --color-border: #e2e5ea;
+  --color-border-strong: #c7cdd8;
+
+  /* Contraste sobre --color-surface: 5.9:1 e 5.4:1 — ambos passam WCAG AA (≥4.5:1) */
+  --color-error: #c02626;
+  --color-success: #0f7a3d;
+
+  /* Tipografia */
+  --font-sans:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: clamp(1.5rem, 5vw, 2rem);
+
+  --leading-body: 1.5;
+
+  /* Layout */
+  --radius-sm: 0.5rem;
+  --radius-card: 0.75rem;
+
+  --shadow-card: 0 6px 18px rgb(11 95 255 / 12%);
+  --shadow-lg: 0 16px 40px rgb(11 95 255 / 18%);
+
+  /* Espaçamento — escala não-linear: cobre exatamente os passos já em uso */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 0.875rem;
+  --space-5: 1rem;
+  --space-6: 1.5rem;
+}

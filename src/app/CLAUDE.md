@@ -33,6 +33,18 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   styled-components. **Tela nova nasce com CSS Module co-locado**
   (`imoveis/page.module.css`, `imoveis/[id]/propertyDetail.module.css`), como os
   componentes.
+- **`tokens.css` é a fonte única de cor, fonte, raio, sombra e espaçamento.**
+  `globals.css` faz `@import './tokens.css'` na **primeira** linha (o CSS ignora
+  `@import` que venha depois de qualquer regra; o pipeline do Next inlina o
+  arquivo no topo do bundle). **Nenhum valor literal de cor, fonte, raio ou
+  sombra fora de `tokens.css`** — `designTokens.test.ts` reprova o build se um
+  escapar num dos arquivos da lista `consumers`. Literal só é legítimo para
+  dimensão específica (`72rem` de container, `44px` de alvo de toque, `48rem` da
+  media query). CSS Module não precisa de import: as custom properties de
+  `:root` cascateiam para dentro do módulo.
+- **`--color-surface` faz duplo papel como texto sobre o azul** (`.search-bar__submit`).
+  A spec de tokens não define `--color-on-primary`; se um dia entrar tema escuro,
+  esse é o primeiro ponto a virar token próprio.
 - **Lógica testável fora do `.tsx`: `imoveis/searchFilters.ts`.** Componentes de
   servidor `async` não são triviais de renderizar em teste sem jsdom/plugin React;
   isolar parsing de query params, montagem de href de página e formatação numa
@@ -135,3 +147,30 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   `tsconfig.json` — sem ele o Vitest não resolve `@/components/...` em import de
   valor. O arquivo é `.mts` de propósito: como `.ts` o Vite carrega a config em CJS
   e imprime o aviso de deprecação a cada `npm test`.
+- **`var(--typo)` falha em silêncio.** Um nome de token errado não gera erro de
+  build nem de lint — o CSS descarta a declaração e o elemento fica sem cor ou
+  sem raio. É a falha mais provável ao mexer em estilo aqui, e a única coisa que
+  a pega é `designTokens.test.ts`, que confere que todo `var(--x)` usado está
+  definido em `tokens.css`.
+- **Custom property não funciona dentro de `@media`.**
+  `@media (min-width: var(--bp-tablet))` é inválido e ignorado sem aviso — por
+  isso os breakpoints são bloco de comentário em `tokens.css`, não variáveis.
+  A escala canônica é mobile ≤640px / tablet 641–1024px / desktop ≥1025px; as
+  media queries de 48rem ainda não seguem essa escala (dívida consciente —
+  realinhar muda o layout e é task própria).
+- **`page.module.css`, `[id]/propertyDetail.module.css` e o `FilterPanel.module.css`
+  estão migrados só em parte.** Chegaram de `main` depois que `tokens.css` já
+  existia. Tudo que tinha
+  equivalente exato na tabela virou `var(--*)`; sobraram os literais cujo token
+  a spec aprovada não define, e que **não** foram colapsados de propósito — mexer
+  no tom de tela recém-mergeada de outra pessoa seria mudança visual não
+  autorizada. Por isso os dois estão em `stylesheets` mas fora de `consumers` no
+  `designTokens.test.ts`: a checagem de `var()` indefinido vale, a proibição de
+  literal não. Para fechar, faltam quatro tokens:
+  - um cinza de superfície sutil que colapse `#f4f6fa` / `#f7f8fa` / `#f2f4f7`
+    (três quase-idênticos, inventados por telas diferentes; `#f7f8fa` já aparece
+    em dois arquivos, que é a deriva começando de novo);
+  - o azul desabilitado `#7ba4ff` do `.retryButton:disabled` do detalhe;
+  - o par fundo/borda do bloco de erro (`#fdf3f3` / `#f0c2c2`) — `--color-error`
+    não cobre, ele é o tom de **texto**, e o texto atual (`#8c2f2f`) é um quarto
+    vermelho a reconciliar.

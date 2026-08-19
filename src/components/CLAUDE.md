@@ -53,6 +53,15 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
   `FilterPanel` usam **CSS Modules co-locado**, suportado nativamente pelo Next,
   sem dependência nova e sem inchar `globals.css`. **Componente novo nasce com CSS
   Module**; `globals.css` fica para reset e utilitários de layout.
+- **Todo valor visual vem de `src/app/tokens.css`.** CSS Module consome
+  `var(--color-*)`, `var(--text-*)`, `var(--radius-*)`, `var(--shadow-*)` e
+  `var(--space-*)` sem import nenhum — as custom properties de `:root`
+  cascateiam normalmente para dentro do módulo. **Cor, fonte, raio e sombra
+  nunca entram como literal num componente**; literal só para dimensão própria
+  do componente (`2.5rem` do ícone placeholder, `44px` de alvo de toque,
+  `aspect-ratio`, as transições de 150ms). Token faltando → adicione em
+  `tokens.css`, não no módulo. `src/app/designTokens.test.ts` reprova literais
+  novos nos módulos da lista `consumers`; ao criar outro módulo, inclua-o lá.
 - **Placeholder sem asset.** SVG inline — não existe `public/` no projeto e criar
   um só para isso adicionaria um request de rede por card sem foto.
 - **`aspect-ratio` no contêiner da mídia** + `object-fit: cover` na foto: a altura
