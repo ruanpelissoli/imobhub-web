@@ -1,6 +1,7 @@
+import { formatArea } from '@/lib/format'
 import type { Property } from '@/lib/types'
 
-export const PRICE_ON_REQUEST = 'Preço sob consulta'
+export { PRICE_ON_REQUEST, formatArea, formatPrice } from '@/lib/format'
 
 export type PropertyAttributeKey = 'bedrooms' | 'bathrooms' | 'parking_spots' | 'area'
 
@@ -14,28 +15,8 @@ export type PropertyAttributesInput = Pick<
   'bedrooms' | 'bathrooms' | 'parking_spots' | 'area'
 >
 
-const priceFormatter = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL',
-  maximumFractionDigits: 0,
-})
-
-const areaFormatter = new Intl.NumberFormat('pt-BR', {
-  maximumFractionDigits: 0,
-})
-
 function isPositive(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0
-}
-
-export function formatPrice(price: number): string {
-  if (!isPositive(price)) return PRICE_ON_REQUEST
-  return priceFormatter.format(price)
-}
-
-export function formatArea(area: number): string | null {
-  if (!isPositive(area)) return null
-  return `${areaFormatter.format(area)} m²`
 }
 
 export function formatLocation(neighborhood: string, city: string): string {
@@ -81,14 +62,7 @@ export function buildAttributes(property: PropertyAttributesInput): PropertyAttr
   return attributes
 }
 
-export interface ImageLoadState {
-  complete: boolean
-  naturalWidth: number
-}
-
-export function isBrokenImage(image: ImageLoadState | null): boolean {
-  return image !== null && image.complete && image.naturalWidth === 0
-}
+export { isBrokenImage, type ImageLoadState } from './imageFallback'
 
 export function getPrimaryPhoto(photos: Property['photos']): string | null {
   const found = (photos ?? []).find(

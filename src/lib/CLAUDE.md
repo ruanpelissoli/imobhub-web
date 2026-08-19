@@ -1,4 +1,4 @@
-# src/lib — módulo de dados
+# src/lib — módulo de dados e formatação
 
 ## Purpose
 
@@ -9,6 +9,20 @@ português pronta para a UI.
 
 **Nenhum componente deve chamar `fetch` direto para a API.** Se um endpoint novo
 for necessário, ele nasce aqui.
+
+`messages.ts` guarda os textos de erro voltados ao usuário e a allowlist
+`resolveErrorMessage`. Mora fora de `api.ts` para que um boundary de erro
+`'use client'` possa importá-lo sem arrastar o módulo de rede para o bundle —
+mesmo espírito de `format.ts`. **Mensagem nova de erro nasce aqui**, não como
+literal solto em `api.ts`, senão o `error.tsx` não consegue reconhecê-la.
+
+`format.ts` é coisa diferente e deliberadamente separada: **apresentação pura, sem
+rede** — preço em BRL, área em m², endereço concatenado, contagens no singular ou
+plural. É seguro importar de qualquer componente client; `api.ts` não é (arrasta
+`ApiError`, timeouts e a base URL para o bundle). É a **única dona** da formatação
+de preço e área: `PropertyCard` e a tela de detalhe consomem daqui
+(`propertyCard.format.ts` só re-exporta), porque o mesmo imóvel mostrando
+`R$ 850.000` num lugar e `R$ 850.000,00` no outro é bug de produto.
 
 ## Key decisions
 
@@ -44,8 +58,29 @@ for necessário, ele nasce aqui.
   `invalid_response`.
 - **Nenhum caminho de falha retorna `null` silenciosamente** — todo erro vira
   `ApiError`.
+- `resolveErrorMessage` **não** confia em `error.message` cegamente: em produção o
+  Next redige mensagens de Server Component e entrega um texto em inglês. Só o que
+  está na allowlist é exibido; o resto vira `GENERIC_ERROR_MESSAGE`. Ao adicionar
+  uma mensagem em `messages.ts`, inclua-a no `Set` — senão ela nunca chega à tela.
 - Resultado vazio (`data: []`) e `page` além do total **não são erro**: a
   resposta é propagada como veio.
+
+### `format.ts`
+
+- **Preço e área só existem quando são positivos.** `0`, negativo, `NaN` ou
+  ausente → "Preço sob consulta" e `null`, respectivamente. Um imóvel de `R$ 0` ou
+  `0 m²` é dado sujo de scraping, não fato — nunca exiba como valor real.
+- Preço em BRL **sem centavos** (`maximumFractionDigits: 0`) e área arredondada ao
+  m² inteiro: anúncio de imóvel não mostra centavos.
+- **`formatCount` é a exceção deliberada: zero é informação.** "Sem vagas" é
+  diferente de vagas desconhecidas. O card compacto omite atributos zerados
+  (`buildAttributes`), a tela de detalhe os exibe (`formatAttributes`) — na tela
+  canônica, silêncio seria lido como "não sabemos".
+- `formatAddress` pula partes vazias sem deixar vírgula pendurada e retorna `null`
+  quando nada sobra.
+- `toAmenityList` aplica `trim`, descarta vazios e **remove duplicatas** mantendo a
+  primeira ocorrência — o scraping repete comodidade com frequência.
+- Título vazio cai em `FALLBACK_TITLE` ("Imóvel"), reusado pela galeria no `alt`.
 
 ## Dependencies
 
@@ -60,3 +95,11 @@ for necessário, ele nasce aqui.
   Consumidores devem usar `?? []` / optional chaining, nunca `.map` direto.
 - `ApiError` usa `Object.setPrototypeOf` para que `instanceof` sobreviva ao
   transpile; prefira o type guard `isApiError` em código de UI.
+- **`types.ts` diverge do contrato publicado de #29**, que traz
+  `canonical_address` e **não** traz `title` nem `price` (os preços vivem em
+  `listings[].price_raw`). Alinhar afeta `searchProperties`, `api.test.ts` e a
+  task #8 — pendência aberta, registrada também em
+  `src/app/imoveis/[id]/CLAUDE.md`. Enquanto isso, `format.ts` tolera todo campo
+  ausente em runtime para a UI degradar em vez de quebrar.
+- Os testes comparam preço com a saída do próprio `Intl`, não com string literal:
+  o separador de milhar e o espaço após `R$` variam entre versões de ICU.
