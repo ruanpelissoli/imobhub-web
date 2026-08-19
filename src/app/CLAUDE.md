@@ -6,17 +6,22 @@ Esqueleto navegacional do ImobHub: o root layout compartilhado e as três rotas
 principais do produto (`/`, `/imoveis`, `/imoveis/[id]`) mais a página 404.
 
 A Home (`/`) já é tela de verdade: headline mais a barra de busca, que navega para
-`/imoveis` com os filtros na URL. `/imoveis` e `/imoveis/[id]` seguem
-**placeholders**, provando que o roteamento e a leitura de parâmetros funcionam ao
-exibir os valores recebidos. Busca com dados reais e detalhe do imóvel vêm em
-tasks seguintes e penduram nesse esqueleto — o conteúdo dessas páginas pode ser
-substituído sem cerimônia, a estrutura de rotas e o layout não.
+`/imoveis` com os filtros na URL. `/imoveis/[id]` também: consome a API de
+verdade, com galeria, dados canônicos e as fronteiras `loading`/`error`/`notFound`
+(ver `imoveis/[id]/CLAUDE.md`). Só `/imoveis` segue **placeholder**, exibindo os
+query params recebidos. A busca com dados reais vem em task seguinte e pendura
+nesse esqueleto — o conteúdo dessa página pode ser substituído sem cerimônia, a
+estrutura de rotas e o layout não.
 
 ## Key decisions
 
 - **Server Components por padrão.** Nenhuma página é `'use client'`; a Home
-  permanece de servidor e aninha o `SearchBar` client (`src/components/`). Só
-  marque uma página como client quando a própria página tiver interatividade.
+  permanece de servidor e aninha o `SearchBar` client, e o detalhe aninha o
+  `PropertyGallery` (`src/components/`). Só marque uma página como client quando a
+  própria página tiver interatividade.
+- **Carregamento via `loading.tsx`, erro via `error.tsx`.** Rotas que buscam dados
+  não usam estado de `isLoading` no cliente: a busca é no servidor e o Suspense da
+  rota cobre isso. `error.tsx` é `'use client'` por exigência do Next.
 - **Header em um único lugar.** A marca "ImobHub" vive em `layout.tsx` e em lugar
   nenhum mais. Páginas nunca renderizam header próprio nem um `<main>` — o layout
   já fornece ambos, e aninhar `<main>` quebra a semântica.
@@ -25,8 +30,8 @@ substituído sem cerimônia, a estrutura de rotas e o layout não.
   o título curto (`'Resultados'`) e o sufixo da marca vem de graça.
 - **Sem framework de CSS.** `globals.css` é o único arquivo de estilo: reset
   mínimo, utilitárias (`.container`, `.brand`, `.nav-list`) e as classes de
-  componente (`.search-bar*`, `.home-hero*`). Sem CSS Modules, Tailwind ou
-  styled-components — telas novas seguem esse padrão.
+  componente (`.search-bar*`, `.home-hero*`, `.property-*`). Sem CSS Modules,
+  Tailwind ou styled-components — telas novas seguem esse padrão.
 - **`toDisplayParams` extraído para `imoveis/searchParams.ts`.** Componentes de
   servidor `async` não são triviais de renderizar em teste sem jsdom/plugin React;
   isolar a normalização dos query params numa função pura dá cobertura real dos
@@ -43,17 +48,16 @@ substituído sem cerimônia, a estrutura de rotas e o layout não.
   filtragem real é responsabilidade da task de busca.
 - Params repetidos (`?amenities=a&amenities=b`) chegam como array e são exibidos
   unidos por vírgula. Só `undefined` é descartado; string vazia é valor válido.
-- `/imoveis/[id]` exibe o `id` cru, numérico ou não (`/imoveis/abc` renderiza
-  normalmente). Não há checagem contra a API; imóvel inexistente será tratado na
-  task de detalhe com dados reais, provavelmente com `notFound()` sobre o
-  `ApiError` 404 de `getPropertyById`.
+- `/imoveis/[id]` busca o imóvel na API. ID inexistente vira `notFound()` a partir
+  do `ApiError` com `status === 404` de `getPropertyById`; demais falhas caem no
+  `error.tsx` da própria rota. Detalhes em `imoveis/[id]/CLAUDE.md`.
 
 ## Dependencies
 
 - `next` (App Router, `next/link`), `react`, `react-dom`.
-- Dados virão exclusivamente de `src/lib/api.ts` — nenhuma rota deve chamar
-  `fetch` direto para a `imobhub-api`. Veja `src/lib/CLAUDE.md`. Hoje nenhuma
-  rota consome a API ainda.
+- Dados vêm exclusivamente de `src/lib/api.ts` — nenhuma rota deve chamar `fetch`
+  direto para a `imobhub-api`. Veja `src/lib/CLAUDE.md`. Hoje só `/imoveis/[id]`
+  consome a API.
 
 ## Gotchas
 

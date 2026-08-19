@@ -1,4 +1,4 @@
-# src/lib — módulo de dados
+# src/lib — módulo de dados e formatação
 
 ## Purpose
 
@@ -9,6 +9,11 @@ português pronta para a UI.
 
 **Nenhum componente deve chamar `fetch` direto para a API.** Se um endpoint novo
 for necessário, ele nasce aqui.
+
+`format.ts` é coisa diferente e deliberadamente separada: **apresentação pura, sem
+rede** — preço em BRL, área em m², endereço concatenado, contagens no singular ou
+plural. É seguro importar de qualquer componente client; `api.ts` não é (arrasta
+`ApiError`, timeouts e a base URL para o bundle).
 
 ## Key decisions
 
@@ -47,6 +52,20 @@ for necessário, ele nasce aqui.
 - Resultado vazio (`data: []`) e `page` além do total **não são erro**: a
   resposta é propagada como veio.
 
+### `format.ts`
+
+- Distinção central: **ausência de dado some da tela, zero é informação.** Área,
+  quartos, banheiros e vagas ausentes (`null`/`undefined`/`NaN`/negativo) retornam
+  `null` e o chamador omite o atributo; `0` vira rótulo próprio ("Sem vagas").
+  Área `0` é tratada como ausência — imóvel com zero m² é dado sujo, não fato.
+- Preço `0` **é** formatado (`R$ 0,00`); ausente ou inválido vira "Preço não
+  informado". Nunca exiba um preço vazio como zero implícito.
+- `formatAddress` pula partes vazias sem deixar vírgula pendurada e retorna `null`
+  quando nada sobra.
+- `toAmenityList` aplica `trim`, descarta vazios e **remove duplicatas** mantendo a
+  primeira ocorrência — o scraping repete comodidade com frequência.
+- Título vazio cai em `FALLBACK_TITLE` ("Imóvel"), reusado pela galeria no `alt`.
+
 ## Dependencies
 
 - `imobhub-api`: `GET /api/v1/properties` e `GET /api/v1/properties/:id`.
@@ -60,3 +79,11 @@ for necessário, ele nasce aqui.
   Consumidores devem usar `?? []` / optional chaining, nunca `.map` direto.
 - `ApiError` usa `Object.setPrototypeOf` para que `instanceof` sobreviva ao
   transpile; prefira o type guard `isApiError` em código de UI.
+- **`types.ts` diverge do contrato publicado de #29**, que traz
+  `canonical_address` e **não** traz `title` nem `price` (os preços vivem em
+  `listings[].price_raw`). Alinhar afeta `searchProperties`, `api.test.ts` e a
+  task #8 — pendência aberta, registrada também em
+  `src/app/imoveis/[id]/CLAUDE.md`. Enquanto isso, `format.ts` tolera todo campo
+  ausente em runtime para a UI degradar em vez de quebrar.
+- Os testes comparam preço com a saída do próprio `Intl`, não com string literal:
+  o separador de milhar e o espaço após `R$` variam entre versões de ICU.
