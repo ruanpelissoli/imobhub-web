@@ -39,6 +39,12 @@ A rota tem as três fronteiras do App Router: `page.tsx` (servidor), `loading.ts
 - **Estilos em `propertyDetail.module.css` co-locado**, não em `globals.css`. É a
   convenção estabelecida pelo `PropertyCard`; `globals.css` fica para reset e
   utilitários de layout. `page`, `loading` e `error` compartilham esse módulo.
+- **Cor, raio, fonte e espaçamento vêm de `src/app/tokens.css`** via `var(--*)`,
+  sem import (as custom properties de `:root` cascateiam para dentro do módulo).
+  Restam quatro literais que a spec de tokens ainda não cobre — `#f4f6fa` dos
+  chips e esqueletos, `#7ba4ff` do botão desabilitado, o `999px` da pílula e o
+  `0.9375rem` dos chips. Não invente token local para eles: o inventário e o
+  caminho de fechamento estão em `src/app/CLAUDE.md`.
 
 ## Business logic
 
