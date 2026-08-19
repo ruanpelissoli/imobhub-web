@@ -14,7 +14,7 @@ Componentes reutilizados por mais de uma rota:
 Padrão do diretório: o `.tsx` cuida de markup e boundary de client; toda regra
 testável mora num módulo `.ts` co-locado, porque o projeto usa Vitest **sem
 jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
-`src/app/imoveis/searchParams.ts`).
+`src/app/imoveis/searchFilters.ts`).
 
 ## Key decisions
 
@@ -61,7 +61,7 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
   a altura do card não depende da imagem carregar, então o grid não pula quando
   uma foto falha.
 - **Export nomeado, um componente por arquivo.** É a convenção do resto do
-  projeto (`api.ts`, `types.ts`, `searchParams.ts`); `export default` só onde o
+  projeto (`api.ts`, `types.ts`, `searchFilters.ts`); `export default` só onde o
   App Router exige (`page.tsx`, `layout.tsx`). `SearchBar` ainda usa `default`
   por ter chegado antes desta convenção — alinhe quando for tocá-lo.
 
@@ -98,8 +98,11 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
   `PropertyCard` — ambos client-side, sem full page reload.
 - `@/lib/types` apenas para tipos (`TransactionType`, `Property`); nada de
   `@/lib/api` aqui.
-- `src/app/page.tsx` consome o `SearchBar`. O `PropertyCard` ainda não é
-  consumido por nenhuma rota — a integração é das tasks de Home e Resultados.
+- `src/app/page.tsx` consome o `SearchBar`; `src/app/imoveis/page.tsx` consome o
+  `PropertyCard` no grid de resultados, com `headingLevel={2}`, e reusa
+  `toTransactionType`/`SEARCH_RESULTS_PATH` de `searchBarUrl.ts`. Esse módulo é
+  puro e sem `'use client'` de propósito: precisa ser importável de Server
+  Components.
 
 ## Gotchas
 

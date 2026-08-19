@@ -40,19 +40,21 @@ Se `NEXT_PUBLIC_API_URL` não estiver definida, o cliente HTTP usa
 
 ## Rotas
 
-| Rota            | Tela                                                                       |
-| --------------- | -------------------------------------------------------------------------- |
-| `/`             | Home — headline e barra de busca                                             |
-| `/imoveis`      | Resultados (lê query params, ex.: `?q=curitiba&transaction_type=sale`)       |
-| `/imoveis/[id]` | Detalhe do imóvel                                                            |
-| qualquer outra  | 404                                                                          |
+| Rota            | Tela                                                                   |
+| --------------- | ---------------------------------------------------------------------- |
+| `/`             | Home — headline e barra de busca                                       |
+| `/imoveis`      | Resultados — grid de imóveis da API com paginação, lido dos query params |
+| `/imoveis/[id]` | Detalhe do imóvel                                                      |
+| qualquer outra  | 404                                                                    |
 
 Os nomes dos query params seguem o contrato da `imobhub-api` (`SearchFilters` em
-`src/lib/types.ts`): `q` para texto livre e `transaction_type` com os valores
-`sale` ("Comprar") e `rent` ("Alugar").
+`src/lib/types.ts`). `/imoveis` lê `q`, `transaction_type` (`sale` para "Comprar",
+`rent` para "Alugar"), `property_type`, `min_price`, `max_price`, `bedrooms`,
+`bathrooms`, `parking_spots`, `min_area`, `city`, `neighborhood` e `page`. Valor
+inválido é descartado silenciosamente — a busca nunca falha por causa da URL.
 
-A Home já navega para os Resultados, mas `/imoveis` e `/imoveis/[id]` ainda são
-placeholders: exibem os parâmetros recebidos, sem consumo de dados reais.
+`/imoveis/[id]` ainda é placeholder: exibe o `id` recebido, sem consumo de dados
+reais.
 
 ## Acesso a dados
 
