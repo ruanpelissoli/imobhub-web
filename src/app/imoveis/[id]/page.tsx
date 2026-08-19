@@ -1,15 +1,15 @@
-import Link from "next/link";
+import Link from 'next/link'
 
 export const metadata = {
-  title: "Detalhe do imóvel",
-};
+  title: 'Detalhe do imóvel',
+}
 
 export default async function DetalheImovelPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string }>
 }) {
-  const { id } = await params;
+  const { id } = await params
 
   return (
     <section>
@@ -29,5 +29,5 @@ export default async function DetalheImovelPage({
         </li>
       </ul>
     </section>
-  );
+  )
 }

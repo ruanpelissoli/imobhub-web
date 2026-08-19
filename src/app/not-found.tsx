@@ -1,8 +1,8 @@
-import Link from "next/link";
+import Link from 'next/link'
 
 export const metadata = {
-  title: "Página não encontrada",
-};
+  title: 'Página não encontrada',
+}
 
 export default function NotFound() {
   return (
@@ -15,5 +15,5 @@ export default function NotFound() {
         </li>
       </ul>
     </section>
-  );
+  )
 }

@@ -1,14 +1,14 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import "./globals.css";
+import type { Metadata } from 'next'
+import Link from 'next/link'
+import './globals.css'
 
 export const metadata: Metadata = {
   title: {
-    default: "ImobHub",
-    template: "%s | ImobHub",
+    default: 'ImobHub',
+    template: '%s | ImobHub',
   },
-  description: "Busca de imóveis no ImobHub",
-};
+  description: 'Busca de imóveis agregada de múltiplas imobiliárias',
+}
 
 export default function RootLayout({
   children,
@@ -26,5 +26,5 @@ export default function RootLayout({
         <main className="container">{children}</main>
       </body>
     </html>
-  );
+  )
 }

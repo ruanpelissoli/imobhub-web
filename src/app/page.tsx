@@ -1,10 +1,10 @@
-import Link from "next/link";
+import Link from 'next/link'
 
 export default function HomePage() {
   return (
     <section>
-      <h1 className="page-title">Home</h1>
-      <p>Ponto de entrada do ImobHub.</p>
+      <h1 className="page-title">ImobHub</h1>
+      <p>Busca de imóveis agregada de múltiplas imobiliárias.</p>
       <ul className="nav-list">
         <li>
           <Link href="/imoveis">Ver imóveis</Link>
@@ -16,5 +16,5 @@ export default function HomePage() {
         </li>
       </ul>
     </section>
-  );
+  )
 }
