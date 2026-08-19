@@ -1,8 +1,12 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'ImobHub',
+  title: {
+    default: 'ImobHub',
+    template: '%s | ImobHub',
+  },
   description: 'Busca de imóveis agregada de múltiplas imobiliárias',
 }
 
@@ -11,7 +15,16 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body>
+        <header className="site-header">
+          <div className="container">
+            <Link href="/" className="brand">
+              ImobHub
+            </Link>
+          </div>
+        </header>
+        <main className="container">{children}</main>
+      </body>
     </html>
   )
 }

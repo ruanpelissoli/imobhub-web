@@ -12,6 +12,12 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   min-height: 100dvh;
   line-height: 1.5;
@@ -24,6 +30,8 @@ body {
     Helvetica,
     Arial,
     sans-serif;
+  color: #16181d;
+  background-color: #ffffff;
 }
 
 img,
@@ -46,6 +54,77 @@ a {
   color: inherit;
 }
 
-main {
-  padding: 1.5rem;
+.container {
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+main.container {
+  padding-block: 1.5rem;
+}
+
+.site-header {
+  border-bottom: 1px solid #e2e5ea;
+}
+
+.site-header .container {
+  padding-block: 0.5rem;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 0.25rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.brand:hover,
+.brand:focus-visible {
+  text-decoration: underline;
+}
+
+.page-title {
+  margin-bottom: 0.5rem;
+  font-size: clamp(1.5rem, 5vw, 2rem);
+}
+
+.nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.nav-list a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #0b5fff;
+  overflow-wrap: anywhere;
+}
+
+.params-list {
+  margin-top: 1rem;
+}
+
+.params-list dt {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.params-list dd {
+  margin-bottom: 0.5rem;
+  overflow-wrap: anywhere;
+}
+
+.empty-state {
+  margin-top: 1rem;
+  color: #5a6072;
 }
