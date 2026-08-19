@@ -6,10 +6,11 @@ Esqueleto navegacional do ImobHub: o root layout compartilhado e as três rotas
 principais do produto (`/`, `/imoveis`, `/imoveis/[id]`) mais a página 404.
 
 As três rotas já são telas de verdade. A Home navega para `/imoveis` com os
-filtros na URL; `/imoveis` lê esses filtros, chama `searchProperties` e renderiza
-o grid de `PropertyCard` com contagem e paginação; `/imoveis/[id]` chama
-`getPropertyById` e mostra galeria e dados canônicos, com as fronteiras
-`loading`/`error`/`notFound` (ver `imoveis/[id]/CLAUDE.md`).
+filtros na URL; `/imoveis` lê esses filtros, chama `searchProperties`, renderiza
+o grid de `PropertyCard` com contagem e paginação e oferece o `FilterPanel`
+lateral para refinar a busca; `/imoveis/[id]` chama `getPropertyById` e mostra
+galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
+`imoveis/[id]/CLAUDE.md`).
 
 ## Key decisions
 
@@ -51,6 +52,16 @@ o grid de `PropertyCard` com contagem e paginação; `/imoveis/[id]` chama
     isso não pode confiar na mensagem que chega: `resolveErrorMessage`
     (`src/lib/messages.ts`) só exibe o que está numa allowlist e cai num texto
     genérico em português para o resto. Ver `imoveis/[id]/CLAUDE.md`.
+- **A URL é a única fonte de verdade dos filtros.** `/imoveis` lê os params uma
+  vez (`parseSearchFilters`) e passa o resultado como `defaults` para o
+  `FilterPanel`, junto de `currentQuery` (`toSearchParams(raw).toString()`, a
+  query crua, que o painel usa para preservar `q` e params desconhecidos ao
+  aplicar). O painel não lê a URL com `useSearchParams()` — isso exigiria
+  boundary de Suspense e duplicaria a leitura. `toSearchParams` foi extraído de
+  `buildPageHref`, que continua sobrescrevendo só `page`.
+- **`key={currentQuery}` no `<FilterPanel>`.** O painel é formulário não
+  controlado; sem remount os `defaultValue` não se reaplicam ao voltar/avançar no
+  browser ou ao paginar. Ver `src/components/CLAUDE.md`.
 - **Carregamento via `imoveis/loading.tsx`** (Suspense nativo do App Router), não
   `useState(isLoading)`.
 - **Paginação com `next/link`, não `onClick`.** Um `<Link>` para a URL da outra
@@ -80,8 +91,10 @@ o grid de `PropertyCard` com contagem e paginação; `/imoveis/[id]` chama
   volta para a primeira página.
 - A contagem vem de `response.total` com singular/plural ("1 imóvel encontrado" /
   "42 imóveis encontrados") e só aparece quando há resultado.
-- O `<aside>` "Filtros" é **espaço reservado** para o painel lateral de outra task.
-  Não implemente filtro nenhum ali sem que essa task chegue.
+- O `<aside>` "Filtros" **deixou de ser espaço reservado**: é o `FilterPanel`
+  (`src/components/`), renderizado **fora** dos blocos condicionais de erro e de
+  lista vazia — o usuário precisa poder corrigir justamente o filtro que zerou a
+  busca. O `<aside>` de `loading.tsx` continua sendo um esqueleto estático.
 - `/imoveis/[id]` busca o imóvel na API. ID inexistente vira `notFound()` a partir
   do `ApiError` com `status === 404` de `getPropertyById`; demais falhas caem no
   `error.tsx` da própria rota. Detalhes em `imoveis/[id]/CLAUDE.md`.

@@ -78,17 +78,24 @@ export function parseSearchFilters(raw: RawSearchParams): SearchFilters {
   return filters
 }
 
-export function buildPageHref(raw: RawSearchParams, page: number): string {
+export function toSearchParams(raw: RawSearchParams): URLSearchParams {
   const params = new URLSearchParams()
 
   for (const [key, value] of Object.entries(raw)) {
-    if (key === 'page' || value === undefined) continue
+    if (value === undefined) continue
 
     for (const item of Array.isArray(value) ? value : [value]) {
       params.append(key, item)
     }
   }
 
+  return params
+}
+
+export function buildPageHref(raw: RawSearchParams, page: number): string {
+  const params = toSearchParams(raw)
+
+  params.delete('page')
   params.append('page', String(page))
 
   return `${SEARCH_RESULTS_PATH}?${params.toString()}`
