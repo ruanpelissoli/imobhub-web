@@ -51,7 +51,7 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   arquivo no topo do bundle). **Nenhum valor literal de cor, fonte, raio ou
   sombra fora de `tokens.css`** — `designTokens.test.ts` reprova o build se um
   escapar num dos arquivos da lista `consumers`. Literal só é legítimo para
-  dimensão específica (`72rem` de container, `44px` de alvo de toque, `48rem` da
+  dimensão específica (`72rem` de container, `44px` de alvo de toque, `641px` da
   media query). CSS Module não precisa de import: as custom properties de
   `:root` cascateiam para dentro do módulo.
 - **`--color-overlay`** (`--color-text` a 55%) é o fundo semitransparente de
@@ -208,9 +208,10 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   `@media (min-width: var(--bp-tablet))` é inválido e ignorado sem aviso — por
   isso os breakpoints são bloco de comentário em `tokens.css`, não variáveis.
   A escala canônica é mobile ≤640px / tablet 641–1024px / desktop ≥1025px.
-  `/imoveis` já usa `641px`/`1025px`; a media query de 48rem que sobrou é a da
-  `.search-bar` em `globals.css` — dívida consciente, e a `SearchBar` nem é
-  renderizada em `/imoveis`, então realinhar é task própria.
+  Home (`globals.css`, `home.module.css`) e `/imoveis` já seguem a escala; os
+  `48rem` que sobram no repo são de `PropertyGallery`, `Skeleton` e
+  `propertyDetail`, e são dívida à parte. `designTokens.test.ts` trava a regressão
+  em `globals.css`/`home.module.css`.
 - **`loading.tsx` e `page.tsx` compartilham `page.module.css` e precisam ficar
   em paridade de layout.** `.filters` e `.filtersTrigger` existem **só** para o
   esqueleto: `.filters` reproduz a sidebar (visível a partir de 1025px) e

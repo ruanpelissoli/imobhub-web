@@ -145,6 +145,14 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
 - Sem nenhum filtro, o retorno é `/imoveis` puro, sem `?` pendurado.
 - O submit é `onSubmit` no `<form>`, não `onClick` no botão: Enter no campo de
   texto também precisa navegar.
+- **Layout responsivo** (`.search-bar*` em `src/app/globals.css`): empilhado até
+  640px com o campo de texto a 100% da largura, horizontal a partir de **641px**,
+  na escala canônica de `tokens.css`. A `flex-basis` do `.search-bar__field` é
+  `14rem` justamente para campo + transação + botão caberem numa linha já a 641px;
+  como o `flex-grow` continua `1`, no desktop o campo absorve a sobra.
+- A **ordem no DOM é texto → tipo de transação → botão**, em todas as faixas. Não
+  reordene visualmente com `order`: a ordem de tabulação segue o DOM e divergir da
+  ordem visual é problema de acessibilidade.
 
 ### FilterPanel
 
