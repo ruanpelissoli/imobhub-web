@@ -41,17 +41,17 @@ const stylesheets = [
   {
     name: 'src/components/FilterPanel.module.css',
     css: read('../components/FilterPanel.module.css'),
-    literalFree: false,
+    literalFree: true,
   },
   {
     name: 'src/app/imoveis/page.module.css',
     css: read('./imoveis/page.module.css'),
-    literalFree: false,
+    literalFree: true,
   },
   {
     name: 'src/app/imoveis/[id]/propertyDetail.module.css',
     css: read('./imoveis/[id]/propertyDetail.module.css'),
-    literalFree: false,
+    literalFree: true,
   },
 ]
 
@@ -67,8 +67,10 @@ describe('tokens.css', () => {
       '--color-primary',
       '--color-primary-dark',
       '--color-primary-soft',
+      '--color-primary-disabled',
       '--color-surface',
       '--color-surface-muted',
+      '--color-surface-subtle',
       '--color-text',
       '--color-text-strong',
       '--color-text-muted',
@@ -92,8 +94,10 @@ describe('tokens.css', () => {
       '--text-lg',
       '--text-xl',
       '--text-2xl',
+      '--text-price',
       '--radius-sm',
       '--radius-card',
+      '--radius-pill',
       '--shadow-card',
       '--shadow-lg',
       '--space-1',
@@ -174,6 +178,27 @@ describe.each(consumers)('$name', ({ css }) => {
     }
   })
 
+})
+
+const outlinesOf = (css: string) =>
+  Array.from(css.matchAll(/\boutline:([^;}]+)/g), (match) => match[1])
+
+describe.each(stylesheets)('$name — foco de teclado', ({ css }) => {
+  it('usa outline de 2px com cor de token em todo elemento focável', () => {
+    for (const declaration of outlinesOf(css)) {
+      expect(declaration).toMatch(/^\s*2px solid var\(--color-[a-z-]+\)\s*$/)
+    }
+  })
+})
+
+describe('foco de teclado', () => {
+  it('encontra anéis de foco declarados (a checagem por arquivo não passa vazia)', () => {
+    const total = stylesheets.reduce(
+      (count, sheet) => count + outlinesOf(sheet.css).length,
+      0,
+    )
+    expect(total).toBeGreaterThanOrEqual(10)
+  })
 })
 
 describe('breakpoints da Home', () => {

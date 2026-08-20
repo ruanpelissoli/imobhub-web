@@ -115,10 +115,11 @@ real**, nunca uma cópia dos breakpoints.
   imóvel com 1 ou 2 atributos "encolhe" na troca. É a mesma convenção já aceita
   para as seções que o esqueleto mostra e o conteúdo real pode não ter — ver
   `src/app/imoveis/[id]/CLAUDE.md`.
-- **Os chips têm raio diferente do real.** Os chips de atributo do detalhe usam
-  `border-radius: 999px`; aqui é `--radius-sm`, porque literal de raio reprova em
-  `designTokens.test.ts` e criar token de pílula é decisão de spec. Diferença
-  puramente visual no estado de carregamento, sem efeito de layout.
+- **Os chips têm raio diferente do real.** Os chips de atributo do detalhe são
+  pílula — hoje `var(--radius-pill)`, que já existe em `tokens.css`. Aqui segue
+  `--radius-sm` **de propósito**: mudar a forma do chip do esqueleto é mudança de
+  aparência, não migração de token. Diferença puramente visual no carregamento,
+  sem efeito de layout; alinhar é trocar uma linha quando alguém decidir que vale.
 - **A fileira de miniaturas do `SkeletonDetailHero` ainda não tem contraparte.** O
   `PropertyGallery` atual navega por botões anterior/próxima + contador, sem
   miniaturas. A fileira atende o critério de aceite e antecipa a galeria futura;

@@ -263,25 +263,39 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   `.filtersTrigger` reserva os 44px do botão "Filtros" abaixo disso. Mexeu no
   breakpoint ou na altura do botão de um lado, acerte o outro — senão a troca do
   Suspense para a página pronta empurra o grid.
-- **`page.module.css`, `[id]/propertyDetail.module.css` e o `FilterPanel.module.css`
-  estão migrados só em parte.** Chegaram de `main` depois que `tokens.css` já
-  existia. Tudo que tinha
-  equivalente exato na tabela virou `var(--*)`; sobraram os literais cujo token
-  a spec aprovada não define, e que **não** foram colapsados de propósito — mexer
-  no tom de tela recém-mergeada de outra pessoa seria mudança visual não
-  autorizada. Por isso os dois estão em `stylesheets` mas fora de `consumers` no
-  `designTokens.test.ts`: a checagem de `var()` indefinido vale, a proibição de
-  literal não. Para fechar, faltam quatro tokens:
-  - um cinza de superfície sutil que colapse `#f4f6fa` / `#f7f8fa` / `#f2f4f7`
-    (três quase-idênticos, inventados por telas diferentes; `#f7f8fa` já aparece
-    em dois arquivos, que é a deriva começando de novo). O `#f2f4f7` chegou a
-    sumir com o `.skeletonCard` órfão, mas voltou no `.filtersTrigger` do
-    esqueleto — enquanto o token não existir, cada esqueleto novo reinventa o
-    tom;
-  - o azul desabilitado `#7ba4ff` do `.retryButton:disabled` do detalhe;
-  - um par fundo/borda tintado para bloco de erro. Os literais `#fdf3f3` /
-    `#f0c2c2` / `#8c2f2f` **saíram do repo** junto com o `.error` de
-    `imoveis/page.module.css`: o `ErrorMessage` usa borda `--color-border` e
-    acento `--color-error`, sem fundo tintado. A dívida virou uma decisão
-    consciente de aparência, não um literal solto — se o tintado voltar, ele
-    nasce como token.
+- **Os 10 stylesheets estão em `consumers` com `literalFree: true`.** Os três que
+  faltavam (`imoveis/page.module.css`, `imoveis/[id]/propertyDetail.module.css` e
+  `components/FilterPanel.module.css`) foram fechados com quatro tokens novos em
+  `tokens.css`:
+  - **`--color-surface-subtle` (`#f7f8fa`)** colapsa os três quase-idênticos que
+    telas diferentes tinham inventado (`#f7f8fa` da sidebar de filtros e do
+    `.panel`, `#f2f4f7` do `.filtersTrigger`, `#f4f6fa` dos chips do detalhe). Os
+    dois últimos mudaram de tom de forma imperceptível — é o custo aceito da
+    unificação, e o que impede o próximo esqueleto de reinventar o cinza. É mais
+    claro que `--color-surface-muted`, que continua sendo a base do shimmer;
+  - **`--color-primary-disabled` (`#7ba4ff`)** — fundo do `.retryButton:disabled`.
+    Só serve de **fundo**: o contraste sobre `--color-surface` não passa AA para
+    texto, e é por isso que o teste de contraste cobre só `--color-error` e
+    `--color-success`;
+  - **`--radius-pill` (`999px`)** — chips de atributo/comodidade do detalhe;
+  - **`--text-price` (`clamp(1.25rem, 4vw, 1.75rem)`)** — degrau fluido entre
+    `--text-xl` e `--text-2xl`, com o valor exato do `.price` preservado. Nome
+    semântico porque não é um degrau da escala numérica.
+- **Anel de foco é `outline: 2px solid var(--color-primary)` com
+  `outline-offset: 2px`, em todo elemento focável.** Os `3px` que sobravam em
+  `PropertyCard`, `PropertyGallery` e `propertyDetail` foram uniformizados, e um
+  `describe` de `designTokens.test.ts` varre **todos** os stylesheets exigindo
+  `2px solid var(--color-*)`. A exceção deliberada é o `.overlay` do `FilterPanel`,
+  que usa `--color-surface` por estar sobre fundo escuro e `outline-offset: -4px`
+  porque cobre o viewport inteiro (offset positivo desenharia o anel fora da área
+  visível). O offset **não** é assertado por regex — viraria lista de exceções.
+- **O que ficou deliberadamente de fora desta migração:** as media queries de
+  `48rem` (dívida própria, ver adiante), `padding: 0.375rem` dos chips (literal de
+  dimensão; inventar degrau de espaçamento é mudança visual), dark mode (não há
+  `prefers-color-scheme` nem `--color-on-primary` — é decisão de produto) e o par
+  fundo/borda tintado de bloco de erro, que **saiu do repo** junto com o `.error`
+  de `imoveis/page.module.css`: o `ErrorMessage` usa borda `--color-border` e
+  acento `--color-error`, sem fundo tintado. Se o tintado voltar, nasce como token.
+  O `.filtersTrigger` do esqueleto também segue com fundo cinza e borda
+  `--color-border` enquanto o `.trigger` real é `--color-surface` com
+  `--color-border-strong` — alinhar é mudança de aparência, não de tokenização.

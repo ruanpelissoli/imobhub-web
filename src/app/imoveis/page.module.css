@@ -10,7 +10,7 @@
   padding: var(--space-5);
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-card);
-  background-color: #f7f8fa;
+  background-color: var(--color-surface-subtle);
 }
 
 /* Reserva a altura do botão "Filtros" da página pronta, para o Suspense não deslocar o grid */
@@ -19,7 +19,7 @@
   height: 44px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background-color: #f2f4f7;
+  background-color: var(--color-surface-subtle);
 }
 
 .filtersTitle {
