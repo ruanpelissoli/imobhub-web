@@ -6,11 +6,14 @@ Blocos animados que representam a forma do conteúdo enquanto os dados carregam:
 `SkeletonBox`, `SkeletonText`, `SkeletonCard`, `SkeletonDetailHero`,
 `SkeletonDetailData` e `SkeletonTableRow`, re-exportados por `index.ts`.
 
-`imoveis/loading.tsx` é o primeiro consumidor: usa `SkeletonCard` dentro do mesmo
-`styles.grid` do grid real, e a classe ad-hoc `.skeletonCard` saiu de
-`imoveis/page.module.css`. `imoveis/[id]/loading.tsx` **ainda** usa os esqueletos
-ad-hoc do módulo CSS dele (`.loadingFrame`, `.loadingBlock`, `.loadingChip`);
-trocá-los por `SkeletonDetailHero`/`SkeletonDetailData` é task seguinte.
+Esta pasta entrega **só os primitivos**; quem os arranja em tela é o `loading.tsx`
+de cada rota.
+
+Consumidores hoje: **`src/app/imoveis/loading.tsx`** usa `SkeletonCard` dentro do
+mesmo `styles.grid` do grid real (a classe ad-hoc `.skeletonCard` saiu de
+`imoveis/page.module.css`); **`src/app/imoveis/[id]/loading.tsx`** usa
+`SkeletonDetailHero`, `SkeletonDetailData` e `SkeletonBox` (este para o link de
+volta, o título da seção e as linhas de anúncio).
 
 ## Key decisions
 
@@ -73,9 +76,12 @@ trocá-los por `SkeletonDetailHero`/`SkeletonDetailData` é task seguinte.
   `literalFree: true`, então o módulo está sob a proibição de literal de cor/raio/
   sombra/fonte **e** sob a checagem de `var(--x)` definido. Literal só para
   dimensão própria (alturas, `5rem` da miniatura, `48rem` da media query, `1.4s`).
-- `src/app/imoveis/loading.tsx` consome `SkeletonCard`; os demais primitivos ainda
-  não têm consumidor. As dimensões foram derivadas de `PropertyCard.module.css`,
-  `PropertyGallery.module.css` e `imoveis/[id]/propertyDetail.module.css`.
+- `src/app/imoveis/loading.tsx` (`SkeletonCard`) e
+  `src/app/imoveis/[id]/loading.tsx` (`SkeletonDetailHero`, `SkeletonDetailData`,
+  `SkeletonBox`) são os consumidores. As dimensões foram derivadas de
+  `PropertyCard.module.css`, `PropertyGallery.module.css` e
+  `imoveis/[id]/propertyDetail.module.css` — mexer em altura ou `aspect-ratio`
+  aqui reabre CLS naquela tela.
 
 ## Gotchas
 
@@ -87,11 +93,14 @@ trocá-los por `SkeletonDetailHero`/`SkeletonDetailData` é task seguinte.
   `PropertyGallery` atual navega por botões anterior/próxima + contador, sem
   miniaturas. A fileira atende o critério de aceite e antecipa a galeria futura;
   hoje a garantia de CLS ~0 vale só para o frame principal (`4 / 3`, virando
-  `16 / 9` a partir de `48rem`, igual a `.frame` e `.loadingFrame`).
-- **`SkeletonTableRow` renderiza um `<tr>` cru** e precisa estar dentro de
-  `<tbody>` — fora dele o HTML é inválido. O componente nasceu genérico porque a
-  tabela de imobiliárias não existe no produto (a seção `listings` é lista, ver
-  `src/app/imoveis/[id]/CLAUDE.md`); ajuste as colunas quando a tabela real chegar.
+  `16 / 9` a partir de `48rem`, igual ao `.frame` real da galeria).
+- **`SkeletonTableRow` segue sem consumidor, por decisão e não por pendência.**
+  Ele renderiza um `<tr>` cru e precisa estar dentro de `<tbody>` — fora dele o
+  HTML é inválido. A seção "Anúncios disponíveis" do detalhe é uma `<ul>`, então
+  o `loading.tsx` de lá monta as linhas com `SkeletonBox` sobre as classes reais
+  `.listing`/`.listings` (ver `src/app/imoveis/[id]/CLAUDE.md`). Ele passa a ter
+  consumidor quando existir uma tabela de verdade no produto; aí ajuste as
+  colunas.
 - **Altura nunca depende de imagem carregar**: mídia e miniaturas usam
   `aspect-ratio` no contêiner, mesmo princípio de `PropertyCard.module.css`.
 - As alturas de linha são `calc(var(--text-*) * var(--leading-body))`, derivadas
