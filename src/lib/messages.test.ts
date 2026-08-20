@@ -3,6 +3,7 @@ import {
   EMPTY_FEATURED_TITLE,
   EMPTY_SEARCH_DESCRIPTION,
   EMPTY_SEARCH_TITLE,
+  FEATURED_LOAD_ERROR_MESSAGE,
   GENERIC_ERROR_MESSAGE,
   GENERIC_LOAD_ERROR_MESSAGE,
   NETWORK_ERROR_MESSAGE,
@@ -40,6 +41,21 @@ describe('isUserFacingMessage', () => {
     expect(isUserFacingMessage(GENERIC_LOAD_ERROR_MESSAGE)).toBe(false)
     expect(isUserFacingMessage(EMPTY_SEARCH_TITLE)).toBe(false)
     expect(isUserFacingMessage(EMPTY_FEATURED_TITLE)).toBe(false)
+    expect(isUserFacingMessage(FEATURED_LOAD_ERROR_MESSAGE)).toBe(false)
+  })
+})
+
+describe('texto de erro dos destaques', () => {
+  it('é discreto e não expõe detalhe técnico', () => {
+    expect(FEATURED_LOAD_ERROR_MESSAGE).toBe(
+      'Não foi possível carregar os destaques.',
+    )
+  })
+
+  it('não é repassado por resolveErrorMessage', () => {
+    expect(resolveErrorMessage(FEATURED_LOAD_ERROR_MESSAGE)).toBe(
+      GENERIC_ERROR_MESSAGE,
+    )
   })
 })
 

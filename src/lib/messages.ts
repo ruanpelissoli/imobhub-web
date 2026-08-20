@@ -17,6 +17,11 @@ export const GENERIC_ERROR_MESSAGE =
 export const GENERIC_LOAD_ERROR_MESSAGE =
   'Ocorreu um erro ao carregar os dados. Tente novamente.'
 
+// Também fora de USER_FACING_MESSAGES: é o texto discreto da seção de destaques
+// da Home, não uma mensagem que o ApiError emite.
+export const FEATURED_LOAD_ERROR_MESSAGE =
+  'Não foi possível carregar os destaques.'
+
 export const EMPTY_SEARCH_TITLE = 'Nenhum imóvel encontrado'
 export const EMPTY_SEARCH_DESCRIPTION =
   'Tente ajustar ou remover alguns filtros para ampliar a busca.'
