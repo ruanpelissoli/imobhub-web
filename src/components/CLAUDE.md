@@ -21,10 +21,11 @@ Componentes reutilizados por mais de uma rota:
 - **`Skeleton/`** — biblioteca de primitivos de estado de carregamento
   (`SkeletonBox`, `SkeletonText`, `SkeletonCard`, `SkeletonDetailHero`,
   `SkeletonDetailData`, `SkeletonTableRow`), consumida pela fronteira de
-  carregamento de cada rota: o `loading.tsx` de `/imoveis/[id]` e o `fallback` do
-  `<Suspense>` local da Home (`src/app/FeaturedSkeleton.tsx`). Seis arquivos que
-  compartilham um único CSS Module não caberiam na raiz sem virar ruído. Decisões,
-  regras de resolução de larguras/colunas e gotchas em `Skeleton/CLAUDE.md`.
+  carregamento de cada rota: os `loading.tsx` de `/imoveis` e `/imoveis/[id]` e o
+  `fallback` do `<Suspense>` local da Home (`src/app/FeaturedSkeleton.tsx`). Seis
+  arquivos que compartilham um único CSS Module não caberiam na raiz sem virar
+  ruído. Decisões, regras de resolução de larguras/colunas e gotchas em
+  `Skeleton/CLAUDE.md`.
 - **`ui/`** — primitivos genéricos sem domínio (`EmptyState`, `ErrorMessage`),
   cada um com pasta própria (`.tsx` + `.module.css` + `index.ts`). Ver
   `ui/CLAUDE.md`.
@@ -237,7 +238,7 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
   por `src/app/FeaturedProperties.tsx` (estado vazio dos destaques da Home); o
   `ui/ErrorMessage`, pelos wrappers client `src/app/imoveis/ResultsError.tsx` e
   `src/app/FeaturedError.tsx`. O `Skeleton/SkeletonCard` é consumido por
-  `src/app/FeaturedSkeleton.tsx`.
+  `src/app/imoveis/loading.tsx` e `src/app/FeaturedSkeleton.tsx`.
 
 ## Gotchas
 

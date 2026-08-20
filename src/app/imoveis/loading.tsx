@@ -1,3 +1,4 @@
+import { SkeletonCard } from '@/components/Skeleton'
 import styles from './page.module.css'
 
 const SKELETON_CARDS = [1, 2, 3, 4, 5, 6]
@@ -22,7 +23,7 @@ export default function Loading() {
           <ul className={styles.grid} aria-hidden="true">
             {SKELETON_CARDS.map((card) => (
               <li key={card}>
-                <div className={styles.skeletonCard} />
+                <SkeletonCard />
               </li>
             ))}
           </ul>

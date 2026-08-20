@@ -12,17 +12,19 @@ carregamento de cada rota — `loading.tsx` onde ela existe, ou o `fallback` de 
 
 Consumidores hoje:
 
+- **`src/app/imoveis/loading.tsx`** — `SkeletonCard` dentro do mesmo
+  `styles.grid` do grid real (a classe ad-hoc `.skeletonCard` saiu de
+  `imoveis/page.module.css`).
 - **`src/app/imoveis/[id]/loading.tsx`** — `SkeletonDetailHero`,
   `SkeletonDetailData` e `SkeletonBox` (este para o link de volta, o título da
   seção e as linhas de anúncio).
-- **`src/app/FeaturedSkeleton.tsx`** — primeiro consumidor de `SkeletonCard`:
-  `FEATURED_LIMIT` cards no grid dos destaques da Home. Não é um `loading.tsx`,
-  e sim o `fallback` do `<Suspense>` local da Home (um `loading.tsx` na raiz
-  bloquearia o hero e a barra de busca; ver `src/app/CLAUDE.md`).
+- **`src/app/FeaturedSkeleton.tsx`** — `FEATURED_LIMIT` `SkeletonCard` no grid
+  dos destaques da Home. É o único consumidor que **não** é um `loading.tsx`, e
+  sim o `fallback` do `<Suspense>` local da Home: um `loading.tsx` na raiz
+  bloquearia o hero e a barra de busca (ver `src/app/CLAUDE.md`).
 
-`imoveis/loading.tsx` **continua** com o esqueleto ad-hoc `.skeletonCard` do
-módulo dele, de propósito — migrá-lo para `SkeletonCard` é task própria, não
-pendência desta pasta.
+Os três seguem o mesmo princípio: o esqueleto reusa a **classe de grid da tela
+real**, nunca uma cópia dos breakpoints.
 
 ## Key decisions
 
@@ -87,11 +89,13 @@ pendência desta pasta.
   `literalFree: true`, então o módulo está sob a proibição de literal de cor/raio/
   sombra/fonte **e** sob a checagem de `var(--x)` definido. Literal só para
   dimensão própria (alturas, `5rem` da miniatura, `48rem` da media query, `1.4s`).
-- `src/app/imoveis/[id]/loading.tsx` e `src/app/FeaturedSkeleton.tsx` são os
-  consumidores. As dimensões foram derivadas de `PropertyCard.module.css`,
-  `PropertyGallery.module.css` e `imoveis/[id]/propertyDetail.module.css` — mexer
-  em altura ou `aspect-ratio` aqui reabre CLS naquelas telas. O `SkeletonCard`
-  espelha o `PropertyCard`, então agora ele responde também pelo CLS do grid de
+- `src/app/imoveis/loading.tsx` e `src/app/FeaturedSkeleton.tsx` (`SkeletonCard`)
+  e `src/app/imoveis/[id]/loading.tsx` (`SkeletonDetailHero`,
+  `SkeletonDetailData`, `SkeletonBox`) são os consumidores. As dimensões foram
+  derivadas de `PropertyCard.module.css`, `PropertyGallery.module.css` e
+  `imoveis/[id]/propertyDetail.module.css` — mexer em altura ou `aspect-ratio`
+  aqui reabre CLS naquelas telas. O `SkeletonCard` espelha o `PropertyCard`, então
+  ele responde sozinho pelo CLS de **dois** grids: o de `/imoveis` e o de
   destaques da Home.
 
 ## Gotchas

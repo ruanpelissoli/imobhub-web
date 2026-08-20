@@ -99,7 +99,11 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   controlado; sem remount os `defaultValue` não se reaplicam ao voltar/avançar no
   browser ou ao paginar. Ver `src/components/CLAUDE.md`.
 - **Carregamento via `imoveis/loading.tsx`** (Suspense nativo do App Router), não
-  `useState(isLoading)`.
+  `useState(isLoading)`. O esqueleto do grid são seis `SkeletonCard`
+  (`@/components/Skeleton`) dentro do **mesmo `styles.grid`** do grid real: reusar
+  a classe é o que garante colunas e `gap` idênticos aos do resultado carregado
+  sem uma segunda fonte de verdade para os breakpoints. Seis é aproximação
+  deliberada — `per_page` não é lido da URL, quem decide é a API.
 - **Paginação com `next/link`, não `onClick`.** Um `<Link>` para a URL da outra
   página re-executa a busca no servidor e mantém o histórico do browser. O estado
   desabilitado é `<span aria-disabled>`, nunca um `<a>` sem `href` (seria focável
@@ -264,7 +268,10 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   literal não. Para fechar, faltam quatro tokens:
   - um cinza de superfície sutil que colapse `#f4f6fa` / `#f7f8fa` / `#f2f4f7`
     (três quase-idênticos, inventados por telas diferentes; `#f7f8fa` já aparece
-    em dois arquivos, que é a deriva começando de novo);
+    em dois arquivos, que é a deriva começando de novo). O `#f2f4f7` chegou a
+    sumir com o `.skeletonCard` órfão, mas voltou no `.filtersTrigger` do
+    esqueleto — enquanto o token não existir, cada esqueleto novo reinventa o
+    tom;
   - o azul desabilitado `#7ba4ff` do `.retryButton:disabled` do detalhe;
   - um par fundo/borda tintado para bloco de erro. Os literais `#fdf3f3` /
     `#f0c2c2` / `#8c2f2f` **saíram do repo** junto com o `.error` de
