@@ -18,8 +18,15 @@
   --color-primary-dark: #0a4fd6;
   --color-primary-soft: #eef3ff;
 
+  /* Só para fundo de controle desabilitado — contraste insuficiente para texto */
+  --color-primary-disabled: #7ba4ff;
+
   --color-surface: #ffffff;
   --color-surface-muted: #eef0f4;
+
+  /* Fundo de bloco sutil (sidebar de filtros, chips do detalhe) — mais claro que
+     --color-surface-muted, que é a base de esqueleto */
+  --color-surface-subtle: #f7f8fa;
 
   --color-text: #16181d;
   --color-text-strong: #3c4354;
@@ -53,11 +60,15 @@
   --text-xl: 1.25rem;
   --text-2xl: clamp(1.5rem, 5vw, 2rem);
 
+  /* Degrau fluido entre --text-xl e --text-2xl, do preço da tela de detalhe */
+  --text-price: clamp(1.25rem, 4vw, 1.75rem);
+
   --leading-body: 1.5;
 
   /* Layout */
   --radius-sm: 0.5rem;
   --radius-card: 0.75rem;
+  --radius-pill: 999px;
 
   --shadow-card: 0 6px 18px rgb(11 95 255 / 12%);
   --shadow-lg: 0 16px 40px rgb(11 95 255 / 18%);

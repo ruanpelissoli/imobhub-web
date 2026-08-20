@@ -77,12 +77,23 @@ A rota tem as quatro fronteiras do App Router: `page.tsx` (servidor),
   livre). Casa por regex — renomear seletor pode quebrá-lo sem mudança visual.
 - **Cor, raio, fonte e espaçamento vêm de `src/app/tokens.css`** via `var(--*)`,
   sem import (as custom properties de `:root` cascateiam para dentro do módulo).
-  Restam três literais que a spec de tokens ainda não cobre — `#f4f6fa` dos
-  chips de atributo, `#7ba4ff` do botão desabilitado e o `999px` da pílula (mais
-  o `0.9375rem` dos chips). Não invente token local para eles: o inventário e o
-  caminho de fechamento estão em `src/app/CLAUDE.md`. A migração do `loading.tsx`
-  para os primitivos já derrubou cinco ocorrências de `#f4f6fa` e um `999px` de
-  quebra — redução colateral, o fechamento continua sendo task própria.
+  O módulo está em `consumers` com `literalFree: true` desde que os quatro tokens
+  que faltavam entraram: `--color-surface-subtle` (era `#f4f6fa` nos chips),
+  `--color-primary-disabled` (era `#7ba4ff` no botão desabilitado), `--radius-pill`
+  (era `999px`) e `--text-price` (era o `clamp()` literal do `.price`, com o valor
+  preservado ao caractere). Não invente token local: token faltando nasce em
+  `tokens.css`.
+- **O chip de atributo desceu de `0.9375rem` para `var(--text-sm)` (0.875rem), não
+  para `--text-base`.** `0.9375rem` caía exatamente entre os dois degraus e o risco
+  registrado aqui é rótulo quebrando em duas linhas a 375px numa coluna de ~155px;
+  descer só aumenta a folga, subir a reduziria. A altura **não** mudou —
+  `min-height: 2.375rem` segue pinada contra o `height: 2.375rem` do
+  `Skeleton.module.css`, então o texto menor apenas sobra dentro da caixa e não há
+  CLS na troca do Suspense. Os chips de `.amenities` (sem `min-height`) ficam ~1px
+  mais baixos; não têm contraparte no esqueleto.
+- **O anel de foco desta tela era `3px` e passou a `2px` com `outline-offset: 2px`**,
+  igual ao resto do app. `padding: 0.375rem` dos chips continua literal de
+  dimensão — inventar degrau de espaçamento novo é mudança visual, não migração.
 
 ## Business logic
 

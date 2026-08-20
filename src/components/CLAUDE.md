@@ -89,6 +89,14 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
   `aspect-ratio`, as transições de 150ms). Token faltando → adicione em
   `tokens.css`, não no módulo. `src/app/designTokens.test.ts` reprova literais
   novos nos módulos da lista `consumers`; ao criar outro módulo, inclua-o lá.
+  `FilterPanel.module.css` entrou em `consumers` quando `--color-surface-subtle`
+  passou a existir — hoje **todos** os módulos daqui estão sob a proibição.
+- **Anel de foco padrão: `outline: 2px solid var(--color-primary)` com
+  `outline-offset: 2px`.** `PropertyCard` e `PropertyGallery` estavam em `3px` e
+  foram alinhados; um `describe` de `designTokens.test.ts` trava a largura em todo
+  stylesheet. A única exceção é o `.overlay` do `FilterPanel`, que fica em
+  `--color-surface` (está sobre fundo escuro) e `outline-offset: -4px` (cobre o
+  viewport inteiro, então offset positivo cairia fora da área visível).
 - **Placeholder sem asset.** SVG inline — não existe `public/` no projeto e criar
   um só para isso adicionaria um request de rede por card sem foto.
 - **`aspect-ratio` no contêiner da mídia** + `object-fit: cover` na foto: a altura
