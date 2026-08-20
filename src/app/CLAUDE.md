@@ -42,6 +42,9 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   dimensão específica (`72rem` de container, `44px` de alvo de toque, `48rem` da
   media query). CSS Module não precisa de import: as custom properties de
   `:root` cascateiam para dentro do módulo.
+- **`--color-overlay`** (`--color-text` a 55%) é o fundo semitransparente de
+  camada modal. Nasceu com o drawer de filtros de `/imoveis`; qualquer modal
+  futuro reusa esse tom em vez de inventar outro preto.
 - **`--color-surface` faz duplo papel como texto sobre o azul** (`.search-bar__submit`).
   A spec de tokens não define `--color-on-primary`; se um dia entrar tema escuro,
   esse é o primeiro ponto a virar token próprio.
@@ -111,7 +114,16 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
 - O `<aside>` "Filtros" **deixou de ser espaço reservado**: é o `FilterPanel`
   (`src/components/`), renderizado **fora** dos blocos condicionais de erro e de
   lista vazia — o usuário precisa poder corrigir justamente o filtro que zerou a
-  busca. O `<aside>` de `loading.tsx` continua sendo um esqueleto estático.
+  busca, e em ≤1024px o botão "Filtros" é a única porta de entrada para eles. O
+  `<aside>` de `loading.tsx` continua sendo um esqueleto estático.
+- **Layout de `/imoveis` por faixa:** ≤640px grid de 1 coluna e filtros em
+  drawer; 641–1024px grid de 2 colunas e o mesmo drawer; ≥1025px sidebar de
+  `18rem` ao lado de um grid de 3 colunas. O grid usa
+  `repeat(n, minmax(0, 1fr))` — `auto-fill`/`minmax(15rem, …)` decidia a
+  contagem de colunas pela largura disponível e não dava para casar com os
+  breakpoints exigidos, e o `minmax(0, …)` é o que impede título longo de
+  estourar a coluna. Quem monta o drawer é o `FilterPanel`, não a página: ver
+  `src/components/CLAUDE.md`.
 - `/imoveis/[id]` busca o imóvel na API. ID inexistente vira `notFound()` a partir
   do `ApiError` com `status === 404` de `getPropertyById` e cai no `not-found.tsx`
   **da própria rota** (`EmptyState` "Imóvel não encontrado" + link de volta aos
@@ -165,9 +177,16 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
 - **Custom property não funciona dentro de `@media`.**
   `@media (min-width: var(--bp-tablet))` é inválido e ignorado sem aviso — por
   isso os breakpoints são bloco de comentário em `tokens.css`, não variáveis.
-  A escala canônica é mobile ≤640px / tablet 641–1024px / desktop ≥1025px; as
-  media queries de 48rem ainda não seguem essa escala (dívida consciente —
-  realinhar muda o layout e é task própria).
+  A escala canônica é mobile ≤640px / tablet 641–1024px / desktop ≥1025px.
+  `/imoveis` já usa `641px`/`1025px`; a media query de 48rem que sobrou é a da
+  `.search-bar` em `globals.css` — dívida consciente, e a `SearchBar` nem é
+  renderizada em `/imoveis`, então realinhar é task própria.
+- **`loading.tsx` e `page.tsx` compartilham `page.module.css` e precisam ficar
+  em paridade de layout.** `.filters` e `.filtersTrigger` existem **só** para o
+  esqueleto: `.filters` reproduz a sidebar (visível a partir de 1025px) e
+  `.filtersTrigger` reserva os 44px do botão "Filtros" abaixo disso. Mexeu no
+  breakpoint ou na altura do botão de um lado, acerte o outro — senão a troca do
+  Suspense para a página pronta empurra o grid.
 - **`page.module.css`, `[id]/propertyDetail.module.css` e o `FilterPanel.module.css`
   estão migrados só em parte.** Chegaram de `main` depois que `tokens.css` já
   existia. Tudo que tinha
