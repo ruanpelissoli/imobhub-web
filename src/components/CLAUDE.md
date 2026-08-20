@@ -16,6 +16,12 @@ Componentes reutilizados por mais de uma rota:
   vigentes por prop (`defaults: SearchFilters`) e a query string corrente
   (`currentQuery`), e navega com `router.push`. `filterPanelUrl.ts` guarda a
   lógica pura de montar/limpar a URL e a lista de tipos de imóvel.
+- **`Skeleton/`** — biblioteca de primitivos de estado de carregamento
+  (`SkeletonBox`, `SkeletonText`, `SkeletonCard`, `SkeletonDetailHero`,
+  `SkeletonDetailData`, `SkeletonTableRow`), a ser consumida pelos `loading.tsx`
+  das rotas. É a **primeira subpasta** deste diretório: seis arquivos que
+  compartilham um único CSS Module não caberiam na raiz sem virar ruído. Decisões,
+  regras de resolução de larguras/colunas e gotchas em `Skeleton/CLAUDE.md`.
 
 `imageFallback.ts` é compartilhado por card e galeria: detecta foto quebrada.
 
@@ -49,8 +55,8 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
 - **Radios em `<fieldset>`/`<legend>`, não `<select>`.** Duas opções fixas ficam
   visíveis de uma vez e cada `<label>` vira alvo de toque de 44px.
 - **CSS: dois esquemas, por idade.** `SearchBar` usa classes globais
-  (`.search-bar*` em `src/app/globals.css`); `PropertyCard`, `PropertyGallery` e
-  `FilterPanel` usam **CSS Modules co-locado**, suportado nativamente pelo Next,
+  (`.search-bar*` em `src/app/globals.css`); `PropertyCard`, `PropertyGallery`,
+  `FilterPanel` e `Skeleton/` usam **CSS Modules co-locado**, suportado nativamente pelo Next,
   sem dependência nova e sem inchar `globals.css`. **Componente novo nasce com CSS
   Module**; `globals.css` fica para reset e utilitários de layout.
 - **Todo valor visual vem de `src/app/tokens.css`.** CSS Module consome
