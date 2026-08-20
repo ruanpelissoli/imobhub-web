@@ -14,6 +14,7 @@ export interface Property {
   amenities?: string[] | null
   photos?: string[] | null
   description?: string | null
+  listings_count?: number | null
   created_at: string
 }
 
