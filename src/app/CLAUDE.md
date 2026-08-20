@@ -111,6 +111,9 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   fica no caminho de erro de propósito: um parágrafo solto sem contexto acima é
   pior de ler, e a omissão total é reservada ao caso de lista vazia. Erro que não
   é `ApiError` é re-lançado.
+- O grid dos destaques segue a mesma escala de `/imoveis`: 1 coluna ≤640px, 2 em
+  641–1024px, 3 a partir de 1025px, com `repeat(n, minmax(0, 1fr))` — o
+  `minmax(0, …)` é o que impede título longo de estourar a coluna a 375px.
 - A mensagem de erro dos destaques é um `<p>` simples, **não** o primitivo
   `ErrorMessage`: aquele é um bloco `role="alert"` com ícone e botão — o oposto de
   "discreto" — e exibiria a `error.message` do `ApiError` em vez do texto fixo.
