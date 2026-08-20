@@ -5,11 +5,21 @@
 }
 
 .filters {
+  display: none;
   min-width: 0;
   padding: var(--space-5);
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-card);
   background-color: #f7f8fa;
+}
+
+/* Reserva a altura do botão "Filtros" da página pronta, para o Suspense não deslocar o grid */
+.filtersTrigger {
+  width: 9rem;
+  height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: #f2f4f7;
 }
 
 .filtersTitle {
@@ -27,6 +37,7 @@
 
 .grid {
   display: grid;
+  grid-template-columns: 1fr;
   gap: var(--space-5);
   margin-top: var(--space-5);
   padding: 0;
@@ -103,13 +114,27 @@
   background-color: #f2f4f7;
 }
 
-@media (min-width: 48rem) {
+@media (min-width: 641px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1025px) {
   .layout {
     grid-template-columns: 18rem minmax(0, 1fr);
     align-items: start;
   }
 
+  .filters {
+    display: block;
+  }
+
+  .filtersTrigger {
+    display: none;
+  }
+
   .grid {
-    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }

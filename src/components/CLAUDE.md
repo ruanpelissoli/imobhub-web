@@ -12,10 +12,12 @@ Componentes reutilizados por mais de uma rota:
   API** — quem busca é a página. `propertyCard.format.ts` guarda a formatação.
 - **`PropertyGallery`** — galeria de fotos da tela de detalhe (`/imoveis/[id]`).
   `propertyGalleryState.ts` guarda a navegação circular e os rótulos.
-- **`FilterPanel`** — painel lateral de filtros de `/imoveis`. Recebe os valores
-  vigentes por prop (`defaults: SearchFilters`) e a query string corrente
+- **`FilterPanel`** — filtros de `/imoveis`, em **dois modos**: sidebar estática
+  em ≥1025px e drawer lateral atrás do botão "Filtros" em ≤1024px. Recebe os
+  valores vigentes por prop (`defaults: SearchFilters`) e a query string corrente
   (`currentQuery`), e navega com `router.push`. `filterPanelUrl.ts` guarda a
-  lógica pura de montar/limpar a URL e a lista de tipos de imóvel.
+  lógica pura de montar/limpar a URL, a lista de tipos de imóvel e a contagem de
+  filtros ativos exibida no botão.
 - **`Skeleton/`** — biblioteca de primitivos de estado de carregamento
   (`SkeletonBox`, `SkeletonText`, `SkeletonCard`, `SkeletonDetailHero`,
   `SkeletonDetailData`, `SkeletonTableRow`), a ser consumida pelos `loading.tsx`
@@ -99,6 +101,25 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
   para dentro de um componente client sem ganho.
 - **`FilterPanel` é `'use client'`, `/imoveis` continua Server Component.** Mesmo
   padrão do `SearchBar`: formulário não controlado, `FormData` no `onSubmit`.
+- **A faixa (sidebar × drawer) vem de `useSyncExternalStore` + `matchMedia`, não
+  de `useEffect`.** Só uma das duas árvores existe no DOM, que é o que os
+  critérios pedem (nada de botão "Filtros" escondido por CSS em desktop, nada de
+  `<aside>` no fluxo em mobile). `getServerSnapshot` devolve `false` (desktop),
+  então o HTML servido traz a sidebar; o CSS a esconde abaixo de 1025px
+  reservando 44px com `visibility`, para a chegada do botão na hidratação não
+  empurrar o grid. O painel já dependia de JS antes disso (o submit é
+  `onSubmit` + `router.push`, sem `action`).
+- **O estado de aberto vive no próprio painel**, não na página nem num wrapper.
+  `/imoveis` é Server Component e o `key={currentQuery}` que ela já passa remonta
+  o painel a cada navegação — logo o drawer nasce fechado no resultado novo, sem
+  estado a resetar e sem flash.
+- **Scroll lock e devolução de foco na limpeza do `ref` callback** (recurso do
+  React 19), não em `useEffect`: cobre também o desmonte com o drawer aberto
+  (navegação, voltar no browser), que um `onClick` de fechar não cobriria. O lock
+  precisa ir no `<html>` **e** no `<body>` — ver Gotchas.
+- **Overlay é `<button>` dentro do elemento `role="dialog"`.** Como `<div>` com
+  `onClick` ele não teria foco visível nem seria anunciado; como irmão do diálogo
+  seria focável mas escondido do leitor de tela por `aria-modal`.
 - **A URL é lida só pela página, nunca por `useSearchParams()` no painel.** A
   página passa `defaults` (de `parseSearchFilters`) e `currentQuery` (de
   `toSearchParams`) por prop, evitando o boundary de Suspense que
@@ -149,6 +170,16 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
 - **Sem validação cruzada** de `min_price > max_price`: a tela nunca bloqueia o
   submit; a API decide o resultado e o estado vazio já existe.
 - Nenhum filtro preenchido → `/imoveis` puro, sem `?` pendurado.
+- **`countActiveFilters` é o rótulo do botão** (`Filtros` / `Filtros (3)`). Itera
+  `FILTER_PARAM_KEYS`, então `page` e `q` ficam de fora por construção;
+  `min_price` e `max_price` contam separado; **`0` conta** (`parking_spots=0` é
+  filtro); texto só com espaços não conta. `transaction_type` e `property_type`
+  passam pelas mesmas validações do painel, porque `parseSearchFilters` **não**
+  valida `property_type` contra `PROPERTY_TYPE_OPTIONS` — sem isso,
+  `?property_type=castelo` exibiria "Qualquer" no `<select>` e mesmo assim
+  contaria como filtro ativo, e o botão mentiria.
+- O drawer fecha por "×", clique no overlay e `Esc`; Aplicar/Limpar fecham antes
+  de navegar, para o `overflow` do body ser liberado mesmo que o remount demore.
 
 ### PropertyCard
 
@@ -197,10 +228,11 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
   `toTransactionType`/`SEARCH_RESULTS_PATH` de `searchBarUrl.ts`. Esse módulo é
   puro e sem `'use client'` de propósito: precisa ser importável de Server
   Components. `src/app/imoveis/[id]/page.tsx` consome o `PropertyGallery`.
-- `src/app/imoveis/page.tsx` consome o `FilterPanel` no `<aside>` do grid,
-  passando `defaults`, `currentQuery` e `key={currentQuery}`, e o
-  `ui/EmptyState` no bloco de lista vazia; `src/app/imoveis/ResultsError.tsx`
-  consome o `ui/ErrorMessage`.
+- `src/app/imoveis/page.tsx` consome o `FilterPanel` como primeiro item da grade
+  `.layout`, passando `defaults`, `currentQuery` e `key={currentQuery}` — quem
+  decide entre `<aside>` (sidebar) e botão + `role="dialog"` (drawer) é o próprio
+  painel —, e o `ui/EmptyState` no bloco de lista vazia;
+  `src/app/imoveis/ResultsError.tsx` consome o `ui/ErrorMessage`.
 
 ## Gotchas
 
@@ -258,6 +290,14 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
   `@/components/PropertyGallery` para o `.ts` errado em filesystem
   case-insensitive (Windows, macOS) e quebra o `typecheck` com TS1149. Daí
   `propertyGalleryState.ts`, no mesmo espírito de `searchBarUrl.ts`.
+- **`document.body.style.overflow = 'hidden'` sozinho NÃO trava a rolagem aqui.**
+  `globals.css` põe `overflow-x: hidden` no `html`, e o overflow do `body` só
+  propaga para o viewport quando o do `html` é `visible`. O drawer trava os dois
+  e restaura os valores inline anteriores na limpeza.
+- **O trap de `Tab` coleta os focáveis por query no contêiner do diálogo**, não
+  por lista fixa: campo novo dentro do drawer entra no ciclo sozinho. Ele só
+  intercepta nas pontas (primeiro/último), então a navegação nativa entre radios
+  continua funcionando.
 - `:has(input:checked)` estiliza a opção selecionada do `SearchBar`; onde não
   houver suporte o radio nativo continua indicando o estado, só sem o destaque.
 - Nenhum componente daqui chama a API.
