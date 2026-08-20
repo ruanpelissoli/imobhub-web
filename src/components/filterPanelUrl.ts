@@ -1,3 +1,4 @@
+import type { SearchFilters } from '@/lib/types'
 import { SEARCH_RESULTS_PATH, toTransactionType } from './searchBarUrl'
 
 export const PROPERTY_TYPE_OPTIONS: ReadonlyArray<{
@@ -107,4 +108,28 @@ export function buildFilterUrl(
 
 export function clearFilterUrl(currentQuery = ''): string {
   return toHref(withoutFilterParams(currentQuery))
+}
+
+function isActiveFilter(
+  key: FilterParamKey,
+  value: SearchFilters[FilterParamKey],
+): boolean {
+  if (key === 'transaction_type') return toTransactionType(value) !== undefined
+  if (key === 'property_type') return toPropertyTypeOption(value) !== undefined
+
+  if (DECIMAL_KEYS.has(key) || INTEGER_KEYS.has(key)) {
+    return typeof value === 'number' && Number.isFinite(value) && value >= 0
+  }
+
+  return typeof value === 'string' && value.trim() !== ''
+}
+
+export function countActiveFilters(filters: SearchFilters): number {
+  let count = 0
+
+  for (const key of FILTER_PARAM_KEYS) {
+    if (isActiveFilter(key, filters[key])) count += 1
+  }
+
+  return count
 }
