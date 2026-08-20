@@ -9,6 +9,11 @@ const tokens = read('./tokens.css')
 const stylesheets = [
   { name: 'src/app/globals.css', css: read('./globals.css'), literalFree: true },
   {
+    name: 'src/app/home.module.css',
+    css: read('./home.module.css'),
+    literalFree: true,
+  },
+  {
     name: 'src/components/PropertyCard.module.css',
     css: read('../components/PropertyCard.module.css'),
     literalFree: true,
