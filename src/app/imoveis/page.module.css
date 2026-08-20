@@ -96,13 +96,6 @@
   color: var(--color-primary);
 }
 
-.skeletonCard {
-  height: 19rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background-color: #f2f4f7;
-}
-
 @media (min-width: 48rem) {
   .layout {
     grid-template-columns: 18rem minmax(0, 1fr);

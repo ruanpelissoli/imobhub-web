@@ -6,10 +6,11 @@ Blocos animados que representam a forma do conteúdo enquanto os dados carregam:
 `SkeletonBox`, `SkeletonText`, `SkeletonCard`, `SkeletonDetailHero`,
 `SkeletonDetailData` e `SkeletonTableRow`, re-exportados por `index.ts`.
 
-Esta pasta entrega **só os primitivos**. As telas (`imoveis/loading.tsx`,
-`imoveis/[id]/loading.tsx`) ainda usam os esqueletos ad-hoc dos módulos CSS delas
-(`.skeletonCard`, `.loadingFrame`, `.loadingBlock`, `.loadingChip`); trocá-los por
-estes componentes é task seguinte, e foi deixado fora de propósito.
+`imoveis/loading.tsx` é o primeiro consumidor: usa `SkeletonCard` dentro do mesmo
+`styles.grid` do grid real, e a classe ad-hoc `.skeletonCard` saiu de
+`imoveis/page.module.css`. `imoveis/[id]/loading.tsx` **ainda** usa os esqueletos
+ad-hoc do módulo CSS dele (`.loadingFrame`, `.loadingBlock`, `.loadingChip`);
+trocá-los por `SkeletonDetailHero`/`SkeletonDetailData` é task seguinte.
 
 ## Key decisions
 
@@ -72,9 +73,9 @@ estes componentes é task seguinte, e foi deixado fora de propósito.
   `literalFree: true`, então o módulo está sob a proibição de literal de cor/raio/
   sombra/fonte **e** sob a checagem de `var(--x)` definido. Literal só para
   dimensão própria (alturas, `5rem` da miniatura, `48rem` da media query, `1.4s`).
-- Nenhum consumidor hoje. As dimensões foram derivadas de
-  `PropertyCard.module.css`, `PropertyGallery.module.css` e
-  `imoveis/[id]/propertyDetail.module.css`.
+- `src/app/imoveis/loading.tsx` consome `SkeletonCard`; os demais primitivos ainda
+  não têm consumidor. As dimensões foram derivadas de `PropertyCard.module.css`,
+  `PropertyGallery.module.css` e `imoveis/[id]/propertyDetail.module.css`.
 
 ## Gotchas
 
