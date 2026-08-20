@@ -119,9 +119,13 @@ A rota tem as três fronteiras do App Router: `page.tsx` (servidor), `loading.ts
 - **Esta rota trata erro por `error.tsx`; a irmã `/imoveis` trata por `try/catch`
   na página.** Não é descuido: `error.tsx` era critério de aceite desta task, e
   `/imoveis` chegou depois com o padrão que preserva a mensagem original. O
-  `RetryButton` de `/imoveis` não serve aqui porque não chama `reset()` do
-  boundary. Se um dia unificar, o caminho é migrar esta rota para `try/catch` —
-  aí `resolveErrorMessage` deixa de ser necessário nela.
+  primitivo `ErrorMessage` (`@/components/ui/ErrorMessage`), que `/imoveis` usa
+  via `ResultsError`, **não serve aqui**: a API dele é `{ message?, onRetry? }` e
+  esta rota precisa de heading próprio, estado "Tentando…", link "← Voltar aos
+  resultados" e um retry que chame `reset()` **e** `router.refresh()`. Forçar o
+  primitivo a caber tudo isso o transformaria num canivete de props. Se um dia
+  unificar, o caminho é migrar esta rota para `try/catch` — aí
+  `resolveErrorMessage` deixa de ser necessário nela e o primitivo passa a caber.
 - A página não renderiza header próprio nem `<main>` — `layout.tsx` já fornece
   ambos.
 - No Next 15 `params` é `Promise` e precisa de `await`.
