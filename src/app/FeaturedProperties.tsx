@@ -1,11 +1,15 @@
 import { PropertyCard } from '@/components/PropertyCard'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { isApiError, searchProperties } from '@/lib/api'
-import { FEATURED_LOAD_ERROR_MESSAGE } from '@/lib/messages'
+import { EMPTY_FEATURED_TITLE, FEATURED_LOAD_ERROR_MESSAGE } from '@/lib/messages'
 import type { PaginatedResponse, Property } from '@/lib/types'
-import { FEATURED_FILTERS, takeFeatured } from './featuredFilters'
+import { FeaturedError } from './FeaturedError'
+import {
+  FEATURED_FILTERS,
+  FEATURED_SECTION_TITLE,
+  takeFeatured,
+} from './featuredFilters'
 import styles from './home.module.css'
-
-const SECTION_TITLE = 'Imóveis em destaque'
 
 export async function FeaturedProperties() {
   let response: PaginatedResponse<Property> | null = null
@@ -21,20 +25,26 @@ export async function FeaturedProperties() {
   if (response === null) {
     return (
       <section className={styles.featured}>
-        <h2 className={styles.title}>{SECTION_TITLE}</h2>
-        <p className={styles.status} role="status">
-          {FEATURED_LOAD_ERROR_MESSAGE}
-        </p>
+        <h2 className={styles.title}>{FEATURED_SECTION_TITLE}</h2>
+        <FeaturedError message={FEATURED_LOAD_ERROR_MESSAGE} />
       </section>
     )
   }
 
   const properties = takeFeatured(response.data)
-  if (properties.length === 0) return null
+
+  if (properties.length === 0) {
+    return (
+      <section className={styles.featured}>
+        <h2 className={styles.title}>{FEATURED_SECTION_TITLE}</h2>
+        <EmptyState title={EMPTY_FEATURED_TITLE} />
+      </section>
+    )
+  }
 
   return (
     <section className={styles.featured}>
-      <h2 className={styles.title}>{SECTION_TITLE}</h2>
+      <h2 className={styles.title}>{FEATURED_SECTION_TITLE}</h2>
 
       <ul className={styles.grid}>
         {properties.map((property) => (

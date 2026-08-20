@@ -19,9 +19,16 @@
   min-width: 0;
 }
 
-.status {
-  margin-top: var(--space-5);
-  color: var(--color-text-muted);
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 @media (min-width: 641px) {
