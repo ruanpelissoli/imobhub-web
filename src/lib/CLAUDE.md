@@ -101,5 +101,12 @@ de preço e área: `PropertyCard` e a tela de detalhe consomem daqui
   task #8 — pendência aberta, registrada também em
   `src/app/imoveis/[id]/CLAUDE.md`. Enquanto isso, `format.ts` tolera todo campo
   ausente em runtime para a UI degradar em vez de quebrar.
+- **`Property.listings_count` é premissa, não contrato confirmado.** Foi
+  adicionado como `number | null` **opcional** para o badge "N imobiliárias" do
+  `PropertyCard`, na mesma pendência de #29. Se a API ainda não devolver o campo,
+  o badge apenas não aparece — nenhuma chamada extra, nenhum erro. Se o backend
+  nomear diferente, o ajuste fica em dois pontos: aqui e a resolução em
+  `formatListingsBadge` (`src/components/propertyCard.format.ts`), que também
+  aceita `listings.length` como fallback.
 - Os testes comparam preço com a saída do próprio `Intl`, não com string literal:
   o separador de milhar e o espaço após `R$` variam entre versões de ICU.

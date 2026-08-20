@@ -27,9 +27,28 @@
   }
 }
 
+.mediaFrame {
+  position: relative;
+}
+
 .media {
   aspect-ratio: 4 / 3;
   background-color: var(--color-surface-muted);
+}
+
+.badge {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  max-width: calc(100% - var(--space-6));
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: var(--leading-body);
+  white-space: nowrap;
 }
 
 .photo {
