@@ -8,8 +8,8 @@ anunciam o imóvel, com preço por anúncio e link externo), tudo a partir de
 `getPropertyById(id)`. É a página mais acessada do produto — cada link de
 resultado e cada link compartilhado cai aqui.
 
-A rota tem as três fronteiras do App Router: `page.tsx` (servidor), `loading.tsx`
-(Suspense) e `error.tsx` (client).
+A rota tem as quatro fronteiras do App Router: `page.tsx` (servidor),
+`loading.tsx` (Suspense), `error.tsx` (client) e `not-found.tsx` (servidor).
 
 ## Key decisions
 
@@ -19,6 +19,23 @@ A rota tem as três fronteiras do App Router: `page.tsx` (servidor), `loading.ts
 - **`loading.tsx` em vez de `useState` de `isLoading`.** A busca roda no servidor
   com `revalidate: 300`; o equivalente correto do "estado de carregamento" é o
   Suspense da rota.
+- **O `loading.tsx` consome os primitivos de `@/components/Skeleton`**
+  (`SkeletonDetailHero`, `SkeletonDetailData`, `SkeletonBox`) em vez dos blocos
+  ad-hoc do CSS Module, que saíram do arquivo. O esqueleto da seção "Anúncios
+  disponíveis" reusa as classes **reais** `.section`/`.listings`/`.listing`, e não
+  cópias: gap, padding, borda e a virada para `flex-direction: row` em `48rem`
+  vêm de graça e não derivam do layout real com o tempo. `SkeletonTableRow` **não**
+  é usado aqui — ele emite um `<tr>` cru, inválido dentro de uma `<ul>`.
+- **`not-found.tsx` da própria rota, com `EmptyState`.** O arquivo de rota tem
+  precedência sobre `src/app/not-found.tsx`, então `notFound()` do `page.tsx` cai
+  nele sem nenhuma mudança na página. O `<Link href="/imoveis">` é renderizado
+  **fora** do `EmptyState`, no molde do estado vazio de `imoveis/page.tsx`: a prop
+  `action` do primitivo é `{ label, onClick }` e callback não atravessa a
+  fronteira servidor→cliente. Marcar o arquivo como `'use client'` só para caber
+  no `action` arrastaria uma tela estática para o bundle sem ganho.
+- **`not-found.tsx` não exporta `metadata`.** O `generateMetadata` do `page.tsx`
+  já resolve o título para "Imóvel não encontrado" no caminho de 404; um segundo
+  ponto de verdade só criaria divergência.
 - **`<Link href="/imoveis">` em vez de `router.back()`.** `router.back()` obrigaria
   a página inteira a virar client e, num acesso direto (link compartilhado),
   levaria o usuário para fora do site. **Consequência aceita:** os filtros da
@@ -41,16 +58,20 @@ A rota tem as três fronteiras do App Router: `page.tsx` (servidor), `loading.ts
   utilitários de layout. `page`, `loading` e `error` compartilham esse módulo.
 - **Cor, raio, fonte e espaçamento vêm de `src/app/tokens.css`** via `var(--*)`,
   sem import (as custom properties de `:root` cascateiam para dentro do módulo).
-  Restam quatro literais que a spec de tokens ainda não cobre — `#f4f6fa` dos
-  chips e esqueletos, `#7ba4ff` do botão desabilitado, o `999px` da pílula e o
-  `0.9375rem` dos chips. Não invente token local para eles: o inventário e o
-  caminho de fechamento estão em `src/app/CLAUDE.md`.
+  Restam três literais que a spec de tokens ainda não cobre — `#f4f6fa` dos
+  chips de atributo, `#7ba4ff` do botão desabilitado e o `999px` da pílula (mais
+  o `0.9375rem` dos chips). Não invente token local para eles: o inventário e o
+  caminho de fechamento estão em `src/app/CLAUDE.md`. A migração do `loading.tsx`
+  para os primitivos já derrubou cinco ocorrências de `#f4f6fa` e um `999px` de
+  quebra — redução colateral, o fechamento continua sendo task própria.
 
 ## Business logic
 
 - **404 → `notFound()`**: `loadProperty` captura o `ApiError` com `status === 404`
   (via `isApiError`) e devolve `null`; a página chama `notFound()` e cai no
-  `src/app/not-found.tsx`. Qualquer outro erro (rede, timeout, 5xx) propaga e cai
+  `not-found.tsx` **desta rota** — `EmptyState` com `PROPERTY_NOT_FOUND_TITLE` e
+  link de volta aos resultados, não mais a página genérica "Página não
+  encontrada" da raiz. Qualquer outro erro (rede, timeout, 5xx) propaga e cai
   no `error.tsx`.
 - **O `error.tsx` só exibe `error.message` quando ela está na allowlist de
   `src/lib/messages.ts`** (`resolveErrorMessage`); qualquer outra coisa vira o
@@ -87,8 +108,13 @@ A rota tem as três fronteiras do App Router: `page.tsx` (servidor), `loading.ts
 - `src/lib/api.ts` (`getPropertyById`, `isApiError`) — nenhuma chamada `fetch`
   direta aqui, ver `src/lib/CLAUDE.md`.
 - `src/lib/format.ts`, `src/lib/messages.ts`, `src/components/PropertyGallery.tsx`.
+- `@/components/Skeleton` (`loading.tsx`) e `@/components/ui/EmptyState`
+  (`not-found.tsx`).
 - Estilos em `propertyDetail.module.css` (co-locado) e
-  `src/components/PropertyGallery.module.css`.
+  `src/components/PropertyGallery.module.css`. O módulo é compartilhado pelas
+  quatro fronteiras da rota — classe removida daqui precisa ser conferida contra
+  `page`, `loading`, `error` e `not-found`, e o `next build` **não** acusa
+  referência quebrada (a classe vira `undefined` no `className`).
 
 ## Gotchas
 
@@ -126,6 +152,15 @@ A rota tem as três fronteiras do App Router: `page.tsx` (servidor), `loading.ts
   primitivo a caber tudo isso o transformaria num canivete de props. Se um dia
   unificar, o caminho é migrar esta rota para `try/catch` — aí
   `resolveErrorMessage` deixa de ser necessário nela e o primitivo passa a caber.
+- **Quem anuncia o carregamento é a tela, não o primitivo.** Os componentes de
+  `Skeleton/` já vêm com `aria-hidden="true"`; o `loading.tsx` tem o texto
+  visível "Carregando imóvel…" com `role="status"` (mesmo padrão de
+  `imoveis/loading.tsx`). Não devolva `aria-busy`/`aria-live` ao contêiner: com o
+  `role="status"` junto, o leitor de tela anuncia duas vezes.
+- **O esqueleto mostra seções que o conteúdo real pode não ter** (imóvel sem
+  fotos, sem anúncios, com 1 anúncio só). É aceito: a convenção da tela é sumir
+  com a seção inteira, e inventar empty-state por seção no loading seria mentir
+  sobre dado que ainda não chegou.
 - A página não renderiza header próprio nem `<main>` — `layout.tsx` já fornece
   ambos.
 - No Next 15 `params` é `Promise` e precisa de `await`.
