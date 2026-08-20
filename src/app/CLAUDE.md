@@ -113,8 +113,10 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   lista vazia — o usuário precisa poder corrigir justamente o filtro que zerou a
   busca. O `<aside>` de `loading.tsx` continua sendo um esqueleto estático.
 - `/imoveis/[id]` busca o imóvel na API. ID inexistente vira `notFound()` a partir
-  do `ApiError` com `status === 404` de `getPropertyById`; demais falhas caem no
-  `error.tsx` da própria rota. Detalhes em `imoveis/[id]/CLAUDE.md`.
+  do `ApiError` com `status === 404` de `getPropertyById` e cai no `not-found.tsx`
+  **da própria rota** (`EmptyState` "Imóvel não encontrado" + link de volta aos
+  resultados), não no 404 genérico do site; demais falhas caem no `error.tsx` da
+  própria rota. Detalhes em `imoveis/[id]/CLAUDE.md`.
 
 ## Dependencies
 
@@ -137,7 +139,9 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
 - **Navegação interna sempre com `next/link`.** Um `<a href="/...">` puro causa
   full page reload e viola o requisito de client-side routing.
 - **`not-found.tsx` na raiz de `src/app`** cobre qualquer rota não mapeada
-  automaticamente.
+  automaticamente — **exceto** onde uma rota define o seu: `imoveis/[id]` tem um
+  `not-found.tsx` próprio, que tem precedência sobre o global. Rota que precise de
+  404 com contexto próprio segue esse caminho, sem tocar no `page.tsx`.
 - `globals.css` tem `overflow-x: hidden` no `html, body` como rede de segurança
   para o requisito de 375px — é rede, não solução. Se algo estourar
   horizontalmente, corrija o elemento (valores de parâmetros usam

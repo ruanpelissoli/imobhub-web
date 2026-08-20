@@ -22,6 +22,13 @@ export const EMPTY_SEARCH_DESCRIPTION =
   'Tente ajustar ou remover alguns filtros para ampliar a busca.'
 export const EMPTY_FEATURED_TITLE = 'Nenhum destaque disponível no momento'
 
+// Fora de USER_FACING_MESSAGES: são textos de tela, não mensagens que o ApiError
+// emite. O título não reusa PROPERTY_NOT_FOUND_MESSAGE porque aquela constante
+// pertence à allowlist e termina em ponto final, o que destoa de EMPTY_*_TITLE.
+export const PROPERTY_NOT_FOUND_TITLE = 'Imóvel não encontrado'
+export const PROPERTY_NOT_FOUND_DESCRIPTION =
+  'O anúncio pode ter saído do ar ou o endereço está incorreto. Volte aos resultados e tente outro imóvel.'
+
 const USER_FACING_MESSAGES: ReadonlySet<string> = new Set([
   NETWORK_ERROR_MESSAGE,
   TIMEOUT_ERROR_MESSAGE,

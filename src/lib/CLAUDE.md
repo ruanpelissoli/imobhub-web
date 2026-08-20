@@ -67,9 +67,17 @@ de preço e área: `PropertyCard` e a tela de detalhe consomem daqui
   uma mensagem **que o `ApiError` emite**, inclua-a no `Set` — senão ela nunca
   chega à tela via `error.tsx`. O `Set` é só isso: **não** entram nele os textos
   de UI que o módulo também hospeda (`GENERIC_LOAD_ERROR_MESSAGE`,
-  `EMPTY_SEARCH_*`, `EMPTY_FEATURED_TITLE`), que são conteúdo de tela e nunca
+  `EMPTY_SEARCH_*`, `EMPTY_FEATURED_TITLE`, `PROPERTY_NOT_FOUND_TITLE`,
+  `PROPERTY_NOT_FOUND_DESCRIPTION`), que são conteúdo de tela e nunca
   chegam como `error.message`. Incluí-los faria `resolveErrorMessage` repassar um
   texto genérico como se fosse diagnóstico nosso.
+- **`PROPERTY_NOT_FOUND_MESSAGE` e `PROPERTY_NOT_FOUND_TITLE` são coisas
+  diferentes de propósito.** A primeira é a mensagem que o `ApiError` de 404 emite
+  ("Imóvel não encontrado.", com ponto final) e pertence ao `Set`; a segunda é o
+  título do `EmptyState` de `imoveis/[id]/not-found.tsx`, sem ponto, no molde de
+  `EMPTY_SEARCH_TITLE`. Reusar a primeira como título traria o ponto final para a
+  tela; alterar o valor dela para tirá-lo quebraria a allowlist e faria o
+  `error.tsx` deixar de reconhecer o 404.
 - Resultado vazio (`data: []`) e `page` além do total **não são erro**: a
   resposta é propagada como veio.
 

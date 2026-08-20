@@ -6,7 +6,8 @@ Primitivos visuais genéricos, sem conhecimento de domínio: não sabem o que é
 imóvel, não chamam a API, não leem a URL. Só recebem props e desenham.
 
 - **`EmptyState`** — ícone decorativo, título, descrição opcional e botão de ação
-  opcional. Usado pelo estado de lista vazia de `/imoveis`.
+  opcional. Usado pelo estado de lista vazia de `/imoveis` e pelo
+  `not-found.tsx` de `/imoveis/[id]`.
 - **`ErrorMessage`** — `role="alert"`, ícone de alerta, texto e botão "Tentar
   novamente" (só quando `onRetry` é passado). Usado por
   `src/app/imoveis/ResultsError.tsx`.
@@ -70,8 +71,11 @@ a pasta por componente. Nenhum dos dois grupos marca `'use client'`.
 ## Dependencies
 
 - `@/lib/messages` (só constantes de texto; nunca `@/lib/api`).
-- Consumidores hoje: `src/app/imoveis/page.tsx` (`EmptyState`) e
-  `src/app/imoveis/ResultsError.tsx` (`ErrorMessage`).
+- Consumidores hoje: `src/app/imoveis/page.tsx` e
+  `src/app/imoveis/[id]/not-found.tsx` (`EmptyState`), e
+  `src/app/imoveis/ResultsError.tsx` (`ErrorMessage`). Os dois consumidores do
+  `EmptyState` são Server Components e renderizam o `<Link>` de volta **fora** do
+  primitivo, pelo mesmo motivo: `action` é callback.
 - `EMPTY_FEATURED_TITLE` existe em `@/lib/messages` mas **não tem consumidor**:
   não há tela de destaques no produto ainda.
 

@@ -6,7 +6,9 @@ import {
   GENERIC_ERROR_MESSAGE,
   GENERIC_LOAD_ERROR_MESSAGE,
   NETWORK_ERROR_MESSAGE,
+  PROPERTY_NOT_FOUND_DESCRIPTION,
   PROPERTY_NOT_FOUND_MESSAGE,
+  PROPERTY_NOT_FOUND_TITLE,
   SERVER_ERROR_MESSAGE,
   TIMEOUT_ERROR_MESSAGE,
   isUserFacingMessage,
@@ -40,6 +42,8 @@ describe('isUserFacingMessage', () => {
     expect(isUserFacingMessage(GENERIC_LOAD_ERROR_MESSAGE)).toBe(false)
     expect(isUserFacingMessage(EMPTY_SEARCH_TITLE)).toBe(false)
     expect(isUserFacingMessage(EMPTY_FEATURED_TITLE)).toBe(false)
+    expect(isUserFacingMessage(PROPERTY_NOT_FOUND_TITLE)).toBe(false)
+    expect(isUserFacingMessage(PROPERTY_NOT_FOUND_DESCRIPTION)).toBe(false)
   })
 })
 
@@ -53,6 +57,15 @@ describe('textos de estado vazio', () => {
 
   it('sugere ajustar os filtros na descrição da busca', () => {
     expect(EMPTY_SEARCH_DESCRIPTION).toMatch(/filtros/i)
+  })
+
+  it('usa o título sem ponto final no imóvel não encontrado', () => {
+    expect(PROPERTY_NOT_FOUND_TITLE).toBe('Imóvel não encontrado')
+    expect(PROPERTY_NOT_FOUND_TITLE).not.toBe(PROPERTY_NOT_FOUND_MESSAGE)
+  })
+
+  it('orienta a voltar aos resultados na descrição do imóvel não encontrado', () => {
+    expect(PROPERTY_NOT_FOUND_DESCRIPTION).toMatch(/resultados/i)
   })
 })
 
