@@ -14,7 +14,10 @@ for necessário, ele nasce aqui.
 `resolveErrorMessage`. Mora fora de `api.ts` para que um boundary de erro
 `'use client'` possa importá-lo sem arrastar o módulo de rede para o bundle —
 mesmo espírito de `format.ts`. **Mensagem nova de erro nasce aqui**, não como
-literal solto em `api.ts`, senão o `error.tsx` não consegue reconhecê-la.
+literal solto em `api.ts`, senão o `error.tsx` não consegue reconhecê-la. O
+módulo também guarda os textos fixos de estado vazio e o fallback genérico de
+carregamento consumidos pelos primitivos de `@/components/ui` — mesma razão:
+texto de tela tem uma dona só.
 
 `format.ts` é coisa diferente e deliberadamente separada: **apresentação pura, sem
 rede** — preço em BRL, área em m², endereço concatenado, contagens no singular ou
@@ -61,7 +64,12 @@ de preço e área: `PropertyCard` e a tela de detalhe consomem daqui
 - `resolveErrorMessage` **não** confia em `error.message` cegamente: em produção o
   Next redige mensagens de Server Component e entrega um texto em inglês. Só o que
   está na allowlist é exibido; o resto vira `GENERIC_ERROR_MESSAGE`. Ao adicionar
-  uma mensagem em `messages.ts`, inclua-a no `Set` — senão ela nunca chega à tela.
+  uma mensagem **que o `ApiError` emite**, inclua-a no `Set` — senão ela nunca
+  chega à tela via `error.tsx`. O `Set` é só isso: **não** entram nele os textos
+  de UI que o módulo também hospeda (`GENERIC_LOAD_ERROR_MESSAGE`,
+  `EMPTY_SEARCH_*`, `EMPTY_FEATURED_TITLE`), que são conteúdo de tela e nunca
+  chegam como `error.message`. Incluí-los faria `resolveErrorMessage` repassar um
+  texto genérico como se fosse diagnóstico nosso.
 - Resultado vazio (`data: []`) e `page` além do total **não são erro**: a
   resposta é propagada como veio.
 

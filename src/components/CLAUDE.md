@@ -19,6 +19,11 @@ Componentes reutilizados por mais de uma rota:
 
 `imageFallback.ts` é compartilhado por card e galeria: detecta foto quebrada.
 
+**`ui/` é a subpasta dos primitivos** — componentes genéricos sem domínio
+(`EmptyState`, `ErrorMessage`). Lá dentro cada componente tem pasta própria com
+`.tsx`, `.module.css` e `index.ts`; aqui na raiz o layout é flat. Primitivo novo
+nasce em `ui/`, componente de domínio continua na raiz. Ver `ui/CLAUDE.md`.
+
 Padrão do diretório: o `.tsx` cuida de markup e boundary de client; toda regra
 testável mora num módulo `.ts` co-locado, porque o projeto usa Vitest **sem
 jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
@@ -29,6 +34,12 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
 - **Client no menor escopo possível.** `SearchBar`, `PropertyImage` e
   `PropertyGallery` são `'use client'`; as páginas que os aninham continuam Server
   Components. `PropertyCard` inteiro é servidor — só a imagem precisa de estado.
+- **Os primitivos de `ui/` não têm diretiva nenhuma**, de propósito: componente
+  sem `'use client'` é *compartilhado* e renderiza dos dois lados, então
+  `EmptyState` serve a um Server Component e `ErrorMessage` serve ao wrapper
+  client que passa `onRetry`. Callback nunca atravessa a fronteira
+  servidor→cliente — quem passa `onClick`/`onRetry` tem que ser client. Ver
+  `ui/CLAUDE.md`.
 - **`<img>` cru, não `next/image`**, em card e galeria. As fotos vêm de scraping
   de imobiliárias arbitrárias e `next.config.ts` não tem `images.remotePatterns`;
   sem lista de hosts o `next/image` quebra em runtime. A regra
@@ -156,7 +167,9 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
   puro e sem `'use client'` de propósito: precisa ser importável de Server
   Components. `src/app/imoveis/[id]/page.tsx` consome o `PropertyGallery`.
 - `src/app/imoveis/page.tsx` consome o `FilterPanel` no `<aside>` do grid,
-  passando `defaults`, `currentQuery` e `key={currentQuery}`.
+  passando `defaults`, `currentQuery` e `key={currentQuery}`, e o
+  `ui/EmptyState` no bloco de lista vazia; `src/app/imoveis/ResultsError.tsx`
+  consome o `ui/ErrorMessage`.
 
 ## Gotchas
 

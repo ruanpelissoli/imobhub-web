@@ -1,0 +1,53 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  max-width: 480px;
+  margin-inline: auto;
+  margin-block: var(--space-6);
+  padding: var(--space-6) var(--space-5);
+  text-align: center;
+}
+
+.icon {
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: var(--space-1);
+  color: var(--color-text-subtle);
+}
+
+.title {
+  color: var(--color-text);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.description {
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+  overflow-wrap: anywhere;
+}
+
+.actionButton {
+  min-height: 44px;
+  margin-top: var(--space-2);
+  padding-inline: var(--space-6);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.actionButton:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.actionButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

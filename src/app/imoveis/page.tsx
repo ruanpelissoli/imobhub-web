@@ -1,9 +1,11 @@
 import Link from 'next/link'
 import { FilterPanel } from '@/components/FilterPanel'
 import { PropertyCard } from '@/components/PropertyCard'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { isApiError, searchProperties } from '@/lib/api'
+import { EMPTY_SEARCH_DESCRIPTION, EMPTY_SEARCH_TITLE } from '@/lib/messages'
 import type { PaginatedResponse, Property } from '@/lib/types'
-import { RetryButton } from './RetryButton'
+import { ResultsError } from './ResultsError'
 import styles from './page.module.css'
 import {
   buildPageHref,
@@ -62,18 +64,14 @@ export default async function ResultadosPage({
         />
 
         <div className={styles.results}>
-          {errorMessage !== null && (
-            <div className={styles.error} role="alert">
-              <p>{errorMessage}</p>
-              <RetryButton />
-            </div>
-          )}
+          {errorMessage !== null && <ResultsError message={errorMessage} />}
 
           {response !== null && response.data.length === 0 && (
             <>
-              <p className="empty-state">
-                Nenhum imóvel encontrado para os filtros selecionados.
-              </p>
+              <EmptyState
+                title={EMPTY_SEARCH_TITLE}
+                description={EMPTY_SEARCH_DESCRIPTION}
+              />
               {currentPage > 1 && (
                 <p className={styles.emptyActions}>
                   <Link href={buildPageHref(raw, 1)}>
