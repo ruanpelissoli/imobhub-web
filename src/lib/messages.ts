@@ -11,6 +11,17 @@ export const PROPERTY_NOT_FOUND_MESSAGE = 'Imóvel não encontrado.'
 export const GENERIC_ERROR_MESSAGE =
   'Não foi possível carregar o imóvel. Tente novamente em instantes.'
 
+// Fora de USER_FACING_MESSAGES de propósito: é o fallback do ErrorMessage, não
+// uma mensagem que o ApiError emite. Incluí-la faria resolveErrorMessage
+// repassar o texto genérico como se fosse diagnóstico nosso.
+export const GENERIC_LOAD_ERROR_MESSAGE =
+  'Ocorreu um erro ao carregar os dados. Tente novamente.'
+
+export const EMPTY_SEARCH_TITLE = 'Nenhum imóvel encontrado'
+export const EMPTY_SEARCH_DESCRIPTION =
+  'Tente ajustar ou remover alguns filtros para ampliar a busca.'
+export const EMPTY_FEATURED_TITLE = 'Nenhum destaque disponível no momento'
+
 const USER_FACING_MESSAGES: ReadonlySet<string> = new Set([
   NETWORK_ERROR_MESSAGE,
   TIMEOUT_ERROR_MESSAGE,

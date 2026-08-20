@@ -119,11 +119,6 @@ main.container {
   overflow-wrap: anywhere;
 }
 
-.empty-state {
-  margin-top: var(--space-5);
-  color: var(--color-text-muted);
-}
-
 .home-hero__subtitle {
   max-width: 46rem;
   color: var(--color-text-muted);
