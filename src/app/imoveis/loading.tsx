@@ -13,6 +13,8 @@ export default function Loading() {
           <h2 className={styles.filtersTitle}>Filtros</h2>
         </aside>
 
+        <div className={styles.filtersTrigger} aria-hidden="true" />
+
         <div className={styles.results}>
           <p className={styles.resultCount} role="status">
             Carregando imóveis…
