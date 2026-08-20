@@ -56,6 +56,25 @@ A rota tem as quatro fronteiras do App Router: `page.tsx` (servidor),
 - **Estilos em `propertyDetail.module.css` co-locado**, não em `globals.css`. É a
   convenção estabelecida pelo `PropertyCard`; `globals.css` fica para reset e
   utilitários de layout. `page`, `loading` e `error` compartilham esse módulo.
+- **`.attributes` é grid (2 colunas até 767px, 4 a partir de `48rem`), `.amenities`
+  continua `flex-wrap` — de propósito.** Os atributos são no máximo quatro e a
+  grade os alinha em colunas; as comodidades são lista de tamanho arbitrário, e
+  forçá-las a 4 colunas deixaria células vazias no fim. O `minmax(0, 1fr)` é
+  obrigatório nas duas faixas: sem ele um rótulo longo estoura a coluna a 375px
+  (mesma razão do grid de `/imoveis`). Os dois seletores nasceram no **mesmo**
+  bloco e foram separados por isso — não os junte de volta.
+- **A altura do chip está pinada em `2.375rem` em par com `Skeleton.module.css`.**
+  A altura natural da pílula (~`2.28rem`) depende de arredondamento de fonte e não
+  dá para casar com o esqueleto; daí `min-height: 2.375rem` no chip real (acima da
+  natural, então ele manda) contra `height: 2.375rem` no `.chip` do esqueleto.
+  **Mexeu num, mexa no outro** — senão volta CLS na troca do Suspense. O
+  `display: flex; align-items: center` no `.attributes li` existe porque o grid
+  estica a célula (`align-items: stretch` é o default).
+- **`propertyDetailLayout.test.ts` lê o CSS como texto.** Vitest roda sem
+  jsdom/RTL, então não dá para medir layout: o teste trava o que é verificável por
+  leitura (colunas, `gap`, altura do chip em par com o esqueleto, `min-height:
+  44px` dos alvos de toque, `overflow-wrap`/`min-width: 0` dos blocos de texto
+  livre). Casa por regex — renomear seletor pode quebrá-lo sem mudança visual.
 - **Cor, raio, fonte e espaçamento vêm de `src/app/tokens.css`** via `var(--*)`,
   sem import (as custom properties de `:root` cascateiam para dentro do módulo).
   Restam três literais que a spec de tokens ainda não cobre — `#f4f6fa` dos
@@ -161,6 +180,20 @@ A rota tem as quatro fronteiras do App Router: `page.tsx` (servidor),
   fotos, sem anúncios, com 1 anúncio só). É aceito: a convenção da tela é sumir
   com a seção inteira, e inventar empty-state por seção no loading seria mentir
   sobre dado que ainda não chegou.
+- **Em grid o chip de atributo deixa de ser pílula justa ao texto** e vira barra
+  arredondada ocupando a coluna inteira. É consequência direta do critério de
+  layout (2/4 colunas), não efeito colateral a corrigir com `justify-self`.
+- **Rótulo de atributo que quebre em duas linhas estoura o `2.375rem`** e reabre
+  um salto pontual contra o esqueleto naquele imóvel. Os rótulos reais mais
+  longos ("Sem banheiros", "1.234 m²") cabem numa linha a 375px em coluna de
+  ~155px. Não mascare com `white-space: nowrap` — aí o texto transborda a coluna,
+  que é pior.
+- **As media queries desta tela são `48rem`, fora da escala canônica**
+  (641px/1025px) de `tokens.css`. É dívida consciente e compartilhada com
+  `PropertyGallery.module.css` e `Skeleton.module.css`: é o `48rem` que casa o
+  `aspect-ratio` do esqueleto do hero com o da galeria real. Realinhar é task
+  própria e os três arquivos mudam juntos — regra nova aqui nasce em `48rem`
+  para o arquivo não ficar com duas escalas.
 - A página não renderiza header próprio nem `<main>` — `layout.tsx` já fornece
   ambos.
 - No Next 15 `params` é `Promise` e precisa de `await`.
