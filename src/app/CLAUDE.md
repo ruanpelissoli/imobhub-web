@@ -29,6 +29,12 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   bloquearia a Home inteira — inclusive o hero e a barra de busca — enquanto a API
   responde (ou até estourar o timeout de 10s de `request()`). Com o Suspense local
   só o slot de destaques espera. **Não crie `src/app/loading.tsx`.**
+- **O `<h2>` da seção de destaques vem de `FEATURED_SECTION_TITLE`
+  (`featuredFilters.ts`), nunca de literal duplicado.** Os quatro estados
+  (carregando, erro, vazio, com resultados) renderizam a **mesma**
+  `<section className={styles.featured}>` com o **mesmo** heading na mesma
+  posição — é isso que impede a troca do fallback pelo conteúdo de empurrar a
+  página. Três literais iguais em três arquivos derivariam no primeiro rename.
 - **`sort: 'recent'` é premissa, não contrato.** O contrato da `imobhub-api` não
   enumera valores de `sort`. Ele fica isolado em `featuredFilters.ts`
   (`FEATURED_FILTERS`), que é o **ponto único de ajuste**. Se a API ignorar, o pior
@@ -106,21 +112,34 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
 ## Business logic
 
 - **Destaques da Home:** `searchProperties({ per_page: 6, sort: 'recent' })`.
-  `data: []` → a seção **inteira**, heading incluso, é omitida em silêncio (lista
-  vazia não é erro e o `EmptyState` seria ruído logo abaixo da barra de busca). Se
-  a API ignorar `per_page` e devolver mais itens, `takeFeatured` corta em 6 no
-  cliente. Falha de API (`ApiError`: rede, timeout, 4xx, 5xx, corpo inválido) →
-  a seção renderiza o `h2` **mais** um `<p role="status">` com
-  `FEATURED_LOAD_ERROR_MESSAGE`; hero e `SearchBar` continuam intactos. O heading
-  fica no caminho de erro de propósito: um parágrafo solto sem contexto acima é
-  pior de ler, e a omissão total é reservada ao caso de lista vazia. Erro que não
-  é `ApiError` é re-lançado.
+  Se a API ignorar `per_page` e devolver mais itens, `takeFeatured` corta em 6 no
+  cliente. Os quatro estados, todos dentro da mesma `<section>` com o mesmo `h2`:
+  - **carregando** → `FeaturedSkeleton.tsx` é o `fallback` do `<Suspense>`:
+    `FEATURED_LIMIT` `SkeletonCard` (`@/components/Skeleton`) numa `<ul>`
+    `aria-hidden` sobre o mesmo `styles.grid` do conteúdo real, mais um
+    `<p role="status">` com o texto de carregamento sob `.srOnly` — anunciado por
+    leitor de tela sem ocupar espaço, o que manteria o CLS de pé. A contagem vem
+    de `FEATURED_LIMIT`, nunca de um `6` solto.
+  - **erro** (`ApiError`: rede, timeout, 4xx, 5xx, corpo inválido) → `ErrorMessage`
+    (`role="alert"`) com `FEATURED_LOAD_ERROR_MESSAGE` e botão "Tentar novamente",
+    via o wrapper `'use client'` `FeaturedError.tsx` (`router.refresh()`). Como
+    `searchProperties` usa `cache: 'no-store'`, o refresh refaz a chamada de
+    verdade e só o slot sob Suspense é re-renderizado. Erro que **não** é
+    `ApiError` continua sendo re-lançado (bug de código não vira mensagem
+    amigável).
+  - **vazio** (`data: []`, ausente ou não-array) → `EmptyState` com
+    `EMPTY_FEATURED_TITLE`, **sem** `action` (Server Component não passa callback).
+  - **com resultados** → o grid de `PropertyCard`.
+
+  Hero, `<h1>` e `SearchBar` ficam **fora** do `<Suspense>` e continuam
+  renderizados e funcionais nos quatro. O heading fica em todos de propósito: é a
+  paridade de markup entre fallback e conteúdo que segura o layout.
 - O grid dos destaques segue a mesma escala de `/imoveis`: 1 coluna ≤640px, 2 em
   641–1024px, 3 a partir de 1025px, com `repeat(n, minmax(0, 1fr))` — o
   `minmax(0, …)` é o que impede título longo de estourar a coluna a 375px.
-- A mensagem de erro dos destaques é um `<p>` simples, **não** o primitivo
-  `ErrorMessage`: aquele é um bloco `role="alert"` com ícone e botão — o oposto de
-  "discreto" — e exibiria a `error.message` do `ApiError` em vez do texto fixo.
+- O `ErrorMessage` dos destaques recebe `FEATURED_LOAD_ERROR_MESSAGE` **fixo** por
+  prop, não a `error.message` do `ApiError`: em produção o Next redige a mensagem
+  de Server Component, e o texto certo nunca cruzaria a fronteira intacto.
 - Os query params da busca usam os nomes do contrato da API (`SearchFilters` em
   `src/lib/types.ts`). Nada de `?cidade=&precoMax=`: essa nomenclatura saiu com os
   links placeholder da Home e não deve voltar.
@@ -171,9 +190,11 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   (`searchProperties`, via `FeaturedProperties.tsx`), `/imoveis`
   (`searchProperties`) e `/imoveis/[id]` (`getPropertyById`) consomem a API.
 - `/` consome o `PropertyCard` com o `headingLevel` default (`3`), sob o `h2` da
-  seção de destaques, e `@/lib/messages` para o texto de erro discreto. Como
-  `searchProperties` usa `cache: 'no-store'`, a Home saiu de `○` para `ƒ` na saída
-  do `next build` — consequência esperada de consumir a API.
+  seção de destaques, os primitivos `SkeletonCard` (`@/components/Skeleton`, via
+  `FeaturedSkeleton.tsx`), `ErrorMessage` (via `FeaturedError.tsx`) e `EmptyState`
+  (`@/components/ui`), e `@/lib/messages` para os textos de erro e de lista vazia.
+  Como `searchProperties` usa `cache: 'no-store'`, a Home saiu de `○` para `ƒ` na
+  saída do `next build` — consequência esperada de consumir a API.
 - `/imoveis` reusa `toTransactionType`/`SEARCH_RESULTS_PATH` de
   `@/components/searchBarUrl` (módulo puro, sem `'use client'`) para não duplicar
   a regra de descarte que a barra de busca já implementa, e o `PropertyCard` com
@@ -217,12 +238,25 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   isso os breakpoints são bloco de comentário em `tokens.css`, não variáveis.
   A escala canônica é mobile ≤640px / tablet 641–1024px / desktop ≥1025px.
   Home (`globals.css`, `home.module.css`) e `/imoveis` já seguem a escala, e
-  `designTokens.test.ts` trava a regressão nos estilos da Home. Sobraram as media
-  queries de 48rem de `PropertyGallery.module.css`,
+  `designTokens.test.ts` trava a regressão nos estilos da Home — inclusive o grid
+  de destaques em 1/2/3 colunas, que o esqueleto do `<Suspense>` reusa. Sobraram
+  as media queries de 48rem de `PropertyGallery.module.css`,
   `imoveis/[id]/propertyDetail.module.css` e `Skeleton.module.css` — dívida
   consciente, e precisam mudar **juntas**: é o `48rem` que casa o `aspect-ratio`
   do esqueleto do hero com o da galeria real e mantém o CLS ~0. Realinhar é task
   própria.
+- **`.srOnly` vive em `home.module.css`, não em `globals.css`.** Ela nasceu com o
+  anúncio de carregamento dos destaques e por enquanto tem um consumidor só; o
+  segundo consumidor fora da Home é o gatilho para promovê-la a utilitária global.
+  Só tem literal de dimensão (`1px`, `rect(0, 0, 0, 0)`) e **nenhuma media
+  query**, então `home.module.css` continua passando tanto na proibição de literal
+  quanto na trava de breakpoints de `designTokens.test.ts`.
+- **`FeaturedSkeleton.tsx` e `FeaturedProperties.tsx` compartilham
+  `home.module.css` e precisam ficar em paridade de layout** — mesma `.featured`,
+  mesma `.title`, mesmo `.grid`, mesma contagem de itens. Mexeu no grid de um
+  lado, acerte o outro, senão a troca do fallback pelo conteúdo empurra a página.
+  O `.grid` é a **única** fonte dos breakpoints de destaques: o esqueleto nunca
+  copia `641px`/`1025px` para si.
 - **`loading.tsx` e `page.tsx` compartilham `page.module.css` e precisam ficar
   em paridade de layout.** `.filters` e `.filtersTrigger` existem **só** para o
   esqueleto: `.filters` reproduz a sidebar (visível a partir de 1025px) e

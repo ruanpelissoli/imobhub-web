@@ -6,11 +6,12 @@ Primitivos visuais genéricos, sem conhecimento de domínio: não sabem o que é
 imóvel, não chamam a API, não leem a URL. Só recebem props e desenham.
 
 - **`EmptyState`** — ícone decorativo, título, descrição opcional e botão de ação
-  opcional. Usado pelo estado de lista vazia de `/imoveis` e pelo
+  opcional. Usado pelo estado de lista vazia de `/imoveis`, pelo estado de lista
+  vazia dos destaques da Home (`src/app/FeaturedProperties.tsx`) e pelo
   `not-found.tsx` de `/imoveis/[id]`.
 - **`ErrorMessage`** — `role="alert"`, ícone de alerta, texto e botão "Tentar
   novamente" (só quando `onRetry` é passado). Usado por
-  `src/app/imoveis/ResultsError.tsx`.
+  `src/app/imoveis/ResultsError.tsx` e `src/app/FeaturedError.tsx`.
 
 Cada primitivo mora na própria pasta (`<Nome>/<Nome>.tsx`, `<Nome>.module.css`,
 `index.ts`), diferente do `src/components/` raiz, que é flat. A pasta por
@@ -71,18 +72,20 @@ a pasta por componente. Nenhum dos dois grupos marca `'use client'`.
 ## Dependencies
 
 - `@/lib/messages` (só constantes de texto; nunca `@/lib/api`).
-- Consumidores hoje: `src/app/imoveis/page.tsx` e
-  `src/app/imoveis/[id]/not-found.tsx` (`EmptyState`), e
-  `src/app/imoveis/ResultsError.tsx` (`ErrorMessage`). Os dois consumidores do
-  `EmptyState` são Server Components e renderizam o `<Link>` de volta **fora** do
-  primitivo, pelo mesmo motivo: `action` é callback.
-- `EMPTY_FEATURED_TITLE` existe em `@/lib/messages` e continua **sem consumidor**,
-  agora por decisão: a seção de destaques da Home existe, mas quando a API devolve
-  lista vazia ela se omite em silêncio — um `EmptyState` logo abaixo da barra de
-  busca seria ruído. Ver `src/app/CLAUDE.md`.
-- A seção de destaques também **não** usa `ErrorMessage`: o erro dela é discreto
-  (`<p role="status">`), e este primitivo é um bloco `role="alert"` com ícone e
-  botão.
+- Consumidores hoje: `src/app/imoveis/page.tsx`,
+  `src/app/imoveis/[id]/not-found.tsx` e `src/app/FeaturedProperties.tsx`
+  (`EmptyState`), e `src/app/imoveis/ResultsError.tsx` e
+  `src/app/FeaturedError.tsx` (`ErrorMessage`). Os três consumidores do
+  `EmptyState` são Server Components e passam **só** `title`/`description`, sem
+  `action`, pelo mesmo motivo: `action` é callback. Os dois do `ErrorMessage` são
+  wrappers `'use client'` de uma linha, existentes só para poder passar
+  `onRetry={() => router.refresh()}`.
+- `EMPTY_FEATURED_TITLE` (`@/lib/messages`) **passou a ter consumidor**: é o
+  título do estado vazio dos destaques da Home. A decisão anterior — omitir a
+  seção em silêncio quando a API devolve `data: []` — foi revertida; ver
+  `src/app/CLAUDE.md`. A seção de destaques também passou a usar `ErrorMessage` em
+  vez de um `<p role="status">` discreto, com o texto fixo
+  `FEATURED_LOAD_ERROR_MESSAGE` passado por prop.
 
 ## Gotchas
 

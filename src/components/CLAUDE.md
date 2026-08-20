@@ -20,11 +20,12 @@ Componentes reutilizados por mais de uma rota:
   filtros ativos exibida no botão.
 - **`Skeleton/`** — biblioteca de primitivos de estado de carregamento
   (`SkeletonBox`, `SkeletonText`, `SkeletonCard`, `SkeletonDetailHero`,
-  `SkeletonDetailData`, `SkeletonTableRow`), consumida pelos `loading.tsx` das
-  rotas — hoje `src/app/imoveis/loading.tsx` usa `SkeletonCard`; o detalhe ainda
-  tem esqueleto ad-hoc. Seis arquivos que compartilham um único CSS Module não caberiam na
-  raiz sem virar ruído. Decisões, regras de resolução de larguras/colunas e
-  gotchas em `Skeleton/CLAUDE.md`.
+  `SkeletonDetailData`, `SkeletonTableRow`), consumida pela fronteira de
+  carregamento de cada rota: os `loading.tsx` de `/imoveis` e `/imoveis/[id]` e o
+  `fallback` do `<Suspense>` local da Home (`src/app/FeaturedSkeleton.tsx`). Seis
+  arquivos que compartilham um único CSS Module não caberiam na raiz sem virar
+  ruído. Decisões, regras de resolução de larguras/colunas e gotchas em
+  `Skeleton/CLAUDE.md`.
 - **`ui/`** — primitivos genéricos sem domínio (`EmptyState`, `ErrorMessage`),
   cada um com pasta própria (`.tsx` + `.module.css` + `index.ts`). Ver
   `ui/CLAUDE.md`.
@@ -240,9 +241,12 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
 - `src/app/imoveis/page.tsx` consome o `FilterPanel` como primeiro item da grade
   `.layout`, passando `defaults`, `currentQuery` e `key={currentQuery}` — quem
   decide entre `<aside>` (sidebar) e botão + `role="dialog"` (drawer) é o próprio
-  painel —, e o `ui/EmptyState` no bloco de lista vazia;
-  `src/app/imoveis/ResultsError.tsx` consome o `ui/ErrorMessage`.
-  `src/app/imoveis/loading.tsx` consome `Skeleton/SkeletonCard`.
+  painel —, e o `ui/EmptyState` no bloco de lista vazia.
+- O `ui/EmptyState` é consumido também por `src/app/imoveis/[id]/not-found.tsx` e
+  por `src/app/FeaturedProperties.tsx` (estado vazio dos destaques da Home); o
+  `ui/ErrorMessage`, pelos wrappers client `src/app/imoveis/ResultsError.tsx` e
+  `src/app/FeaturedError.tsx`. O `Skeleton/SkeletonCard` é consumido por
+  `src/app/imoveis/loading.tsx` e `src/app/FeaturedSkeleton.tsx`.
 
 ## Gotchas
 
