@@ -19,6 +19,11 @@ const stylesheets = [
     literalFree: true,
   },
   {
+    name: 'src/components/Skeleton/Skeleton.module.css',
+    css: read('../components/Skeleton/Skeleton.module.css'),
+    literalFree: true,
+  },
+  {
     name: 'src/components/FilterPanel.module.css',
     css: read('../components/FilterPanel.module.css'),
     literalFree: false,

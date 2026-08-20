@@ -1,0 +1,164 @@
+.shimmer {
+  background-color: var(--color-surface-muted);
+  background-image: linear-gradient(
+    90deg,
+    var(--color-surface-muted) 0%,
+    var(--color-surface) 45%,
+    var(--color-border) 55%,
+    var(--color-surface-muted) 100%
+  );
+  background-repeat: no-repeat;
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 150% 0;
+  }
+
+  to {
+    background-position: -50% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer {
+    animation: none;
+  }
+}
+
+.radiusSm {
+  border-radius: var(--radius-sm);
+}
+
+.radiusCard {
+  border-radius: var(--radius-card);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.textLine {
+  width: 100%;
+  height: calc(var(--text-base) * var(--leading-body));
+}
+
+.card {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.cardMedia {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-4) var(--space-5) var(--space-5);
+}
+
+.priceLine {
+  width: min(100%, 9rem);
+  height: calc(var(--text-lg) * var(--leading-body));
+}
+
+.locationLine {
+  width: min(100%, 12rem);
+  height: calc(var(--text-sm) * var(--leading-body));
+}
+
+.attributes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin-top: var(--space-1);
+}
+
+.attributeChip {
+  width: 4rem;
+  height: calc(var(--text-sm) * var(--leading-body));
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.heroFrame {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--color-border);
+}
+
+.thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.thumb {
+  width: 5rem;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--color-border);
+}
+
+.detailData {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.detailTitle {
+  width: min(100%, 24rem);
+  height: 2rem;
+}
+
+.detailPrice {
+  width: min(100%, 12rem);
+  height: 1.75rem;
+}
+
+.detailAddress {
+  width: min(100%, 18rem);
+  height: 1.25rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  width: 6rem;
+  height: 2rem;
+}
+
+.cell {
+  padding: var(--space-2) var(--space-3);
+}
+
+.cellLine {
+  width: 100%;
+  height: calc(var(--text-base) * var(--leading-body));
+}
+
+@media (min-width: 48rem) {
+  .heroFrame {
+    aspect-ratio: 16 / 9;
+  }
+}
