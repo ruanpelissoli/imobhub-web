@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   buildFilterUrl,
   clearFilterUrl,
+  countActiveFilters,
   PROPERTY_TYPE_OPTIONS,
   toPropertyTypeOption,
 } from './filterPanelUrl'
@@ -126,6 +127,66 @@ describe('clearFilterUrl', () => {
 
   it('retorna a rota sem query string quando não há nada a preservar', () => {
     expect(clearFilterUrl('')).toBe('/imoveis')
+  })
+})
+
+describe('countActiveFilters', () => {
+  it('retorna zero quando não há filtro vigente', () => {
+    expect(countActiveFilters({})).toBe(0)
+  })
+
+  it('ignora page e q', () => {
+    expect(countActiveFilters({ page: 3, q: 'casa com piscina' })).toBe(0)
+  })
+
+  it('conta min_price e max_price separadamente', () => {
+    expect(countActiveFilters({ min_price: 250000, max_price: 900000 })).toBe(2)
+  })
+
+  it('conta zero como valor válido', () => {
+    expect(countActiveFilters({ parking_spots: 0 })).toBe(1)
+    expect(countActiveFilters({ min_price: 0 })).toBe(1)
+  })
+
+  it('descarta número negativo ou não finito', () => {
+    expect(countActiveFilters({ bedrooms: -1 })).toBe(0)
+    expect(countActiveFilters({ min_area: Number.NaN })).toBe(0)
+    expect(countActiveFilters({ max_price: Number.POSITIVE_INFINITY })).toBe(0)
+  })
+
+  it('descarta texto vazio ou só com espaços', () => {
+    expect(countActiveFilters({ city: '   ', neighborhood: '' })).toBe(0)
+  })
+
+  it('descarta property_type fora da lista de opções', () => {
+    expect(countActiveFilters({ property_type: 'castelo' })).toBe(0)
+    expect(countActiveFilters({ property_type: 'apartamento' })).toBe(1)
+  })
+
+  it('descarta transaction_type fora do contrato', () => {
+    expect(
+      countActiveFilters({ transaction_type: 'xyz' as never }),
+    ).toBe(0)
+    expect(countActiveFilters({ transaction_type: 'rent' })).toBe(1)
+  })
+
+  it('conta todos os campos do painel quando estão preenchidos', () => {
+    expect(
+      countActiveFilters({
+        transaction_type: 'sale',
+        property_type: 'apartamento',
+        min_price: 250000,
+        max_price: 900000,
+        bedrooms: 3,
+        bathrooms: 2,
+        parking_spots: 1,
+        min_area: 65,
+        city: 'Curitiba',
+        neighborhood: 'Batel',
+        page: 2,
+        q: 'cobertura',
+      }),
+    ).toBe(10)
   })
 })
 
