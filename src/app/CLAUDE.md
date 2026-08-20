@@ -178,9 +178,11 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   `@media (min-width: var(--bp-tablet))` é inválido e ignorado sem aviso — por
   isso os breakpoints são bloco de comentário em `tokens.css`, não variáveis.
   A escala canônica é mobile ≤640px / tablet 641–1024px / desktop ≥1025px.
-  `/imoveis` já usa `641px`/`1025px`; a media query de 48rem que sobrou é a da
-  `.search-bar` em `globals.css` — dívida consciente, e a `SearchBar` nem é
-  renderizada em `/imoveis`, então realinhar é task própria.
+  `/imoveis` já usa `641px`/`1025px`; sobraram as media queries de 48rem da
+  `.search-bar` em `globals.css`, de `imoveis/[id]/propertyDetail.module.css` e do
+  `Skeleton.module.css` — dívida consciente. As duas últimas precisam mudar
+  **juntas**: é o `48rem` que casa o `aspect-ratio` do esqueleto do hero com o da
+  galeria real e mantém o CLS ~0. Realinhar é task própria.
 - **`loading.tsx` e `page.tsx` compartilham `page.module.css` e precisam ficar
   em paridade de layout.** `.filters` e `.filtersTrigger` existem **só** para o
   esqueleto: `.filters` reproduz a sidebar (visível a partir de 1025px) e
