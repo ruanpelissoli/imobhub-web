@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { Property } from '@/lib/types'
-import { FEATURED_FILTERS, FEATURED_LIMIT, takeFeatured } from './featuredFilters'
+import {
+  FEATURED_FILTERS,
+  FEATURED_LIMIT,
+  FEATURED_SECTION_TITLE,
+  takeFeatured,
+} from './featuredFilters'
 
 const buildProperty = (id: string): Property => ({
   id,
@@ -23,6 +28,12 @@ describe('FEATURED_FILTERS', () => {
   it('pede seis imóveis ordenados pelos mais recentes', () => {
     expect(FEATURED_LIMIT).toBe(6)
     expect(FEATURED_FILTERS).toEqual({ per_page: 6, sort: 'recent' })
+  })
+})
+
+describe('FEATURED_SECTION_TITLE', () => {
+  it('é o texto único do heading compartilhado pelos quatro estados da seção', () => {
+    expect(FEATURED_SECTION_TITLE).toBe('Imóveis em destaque')
   })
 })
 

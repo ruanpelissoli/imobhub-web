@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import SearchBar from '@/components/SearchBar'
 import { FeaturedProperties } from './FeaturedProperties'
-import styles from './home.module.css'
+import { FeaturedSkeleton } from './FeaturedSkeleton'
 
 export default function HomePage() {
   return (
@@ -15,9 +15,7 @@ export default function HomePage() {
         <SearchBar />
       </section>
 
-      <Suspense
-        fallback={<p className={styles.status}>Carregando destaques…</p>}
-      >
+      <Suspense fallback={<FeaturedSkeleton />}>
         <FeaturedProperties />
       </Suspense>
     </>
