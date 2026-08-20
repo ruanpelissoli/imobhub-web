@@ -154,8 +154,10 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   estourar a coluna. Quem monta o drawer é o `FilterPanel`, não a página: ver
   `src/components/CLAUDE.md`.
 - `/imoveis/[id]` busca o imóvel na API. ID inexistente vira `notFound()` a partir
-  do `ApiError` com `status === 404` de `getPropertyById`; demais falhas caem no
-  `error.tsx` da própria rota. Detalhes em `imoveis/[id]/CLAUDE.md`.
+  do `ApiError` com `status === 404` de `getPropertyById` e cai no `not-found.tsx`
+  **da própria rota** (`EmptyState` "Imóvel não encontrado" + link de volta aos
+  resultados), não no 404 genérico do site; demais falhas caem no `error.tsx` da
+  própria rota. Detalhes em `imoveis/[id]/CLAUDE.md`.
 
 ## Dependencies
 
@@ -183,7 +185,9 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
 - **Navegação interna sempre com `next/link`.** Um `<a href="/...">` puro causa
   full page reload e viola o requisito de client-side routing.
 - **`not-found.tsx` na raiz de `src/app`** cobre qualquer rota não mapeada
-  automaticamente.
+  automaticamente — **exceto** onde uma rota define o seu: `imoveis/[id]` tem um
+  `not-found.tsx` próprio, que tem precedência sobre o global. Rota que precise de
+  404 com contexto próprio segue esse caminho, sem tocar no `page.tsx`.
 - `globals.css` tem `overflow-x: hidden` no `html, body` como rede de segurança
   para o requisito de 375px — é rede, não solução. Se algo estourar
   horizontalmente, corrija o elemento (valores de parâmetros usam
@@ -208,10 +212,13 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   `@media (min-width: var(--bp-tablet))` é inválido e ignorado sem aviso — por
   isso os breakpoints são bloco de comentário em `tokens.css`, não variáveis.
   A escala canônica é mobile ≤640px / tablet 641–1024px / desktop ≥1025px.
-  Home (`globals.css`, `home.module.css`) e `/imoveis` já seguem a escala; os
-  `48rem` que sobram no repo são de `PropertyGallery`, `Skeleton` e
-  `propertyDetail`, e são dívida à parte. `designTokens.test.ts` trava a regressão
-  em `globals.css`/`home.module.css`.
+  Home (`globals.css`, `home.module.css`) e `/imoveis` já seguem a escala, e
+  `designTokens.test.ts` trava a regressão nos estilos da Home. Sobraram as media
+  queries de 48rem de `PropertyGallery.module.css`,
+  `imoveis/[id]/propertyDetail.module.css` e `Skeleton.module.css` — dívida
+  consciente, e precisam mudar **juntas**: é o `48rem` que casa o `aspect-ratio`
+  do esqueleto do hero com o da galeria real e mantém o CLS ~0. Realinhar é task
+  própria.
 - **`loading.tsx` e `page.tsx` compartilham `page.module.css` e precisam ficar
   em paridade de layout.** `.filters` e `.filtersTrigger` existem **só** para o
   esqueleto: `.filters` reproduz a sidebar (visível a partir de 1025px) e
