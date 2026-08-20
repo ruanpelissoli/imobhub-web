@@ -222,7 +222,9 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
   `PropertyCard` — ambos client-side, sem full page reload.
 - `@/lib/types` apenas para tipos (`TransactionType`, `Property`) e
   `@/lib/format` para formatação pura; **nada de `@/lib/api` aqui**.
-- `src/app/page.tsx` consome o `SearchBar`; `src/app/imoveis/page.tsx` consome o
+- `src/app/page.tsx` consome o `SearchBar` e, via `src/app/FeaturedProperties.tsx`,
+  o `PropertyCard` com o `headingLevel` default (`3`) — os cards ficam sob o `h2`
+  da seção "Imóveis em destaque"; `src/app/imoveis/page.tsx` consome o
   `PropertyCard` no grid de resultados, com `headingLevel={2}`, e reusa
   `toTransactionType`/`SEARCH_RESULTS_PATH` de `searchBarUrl.ts`. Esse módulo é
   puro e sem `'use client'` de propósito: precisa ser importável de Server
