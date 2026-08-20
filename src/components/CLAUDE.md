@@ -77,6 +77,14 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
   um só para isso adicionaria um request de rede por card sem foto.
 - **`aspect-ratio` no contêiner da mídia** + `object-fit: cover` na foto: a altura
   não depende da imagem carregar, então o grid não pula quando uma foto falha.
+- **`.mediaFrame` existe só para posicionar o badge.** O `.media`, dono do
+  `aspect-ratio`, é renderizado **dentro** do client `PropertyImage`, nos dois
+  caminhos (foto e placeholder). Envolver `<PropertyImage>` num `<div>` com
+  `position: relative` no próprio `PropertyCard` mantém o badge do lado servidor,
+  funciona igual sobre foto e sobre placeholder sem duplicar markup e não toca no
+  `aspect-ratio`. A alternativa — `position: relative` no `.media` e o badge como
+  `children` de `PropertyImage` — foi rejeitada por arrastar markup de servidor
+  para dentro de um componente client sem ganho.
 - **`FilterPanel` é `'use client'`, `/imoveis` continua Server Component.** Mesmo
   padrão do `SearchBar`: formulário não controlado, `FormData` no `onSubmit`.
 - **A URL é lida só pela página, nunca por `useSearchParams()` no painel.** A
@@ -143,6 +151,15 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
   solto.
 - Foto principal = primeira entrada **não vazia** de `photos` (a API pode mandar
   strings em branco). Sem foto válida ou erro de carregamento → placeholder.
+- **Badge "N imobiliárias" só a partir de 2 anúncios** (`formatListingsBadge`). A
+  contagem vem de `listings_count`; se o campo estiver ausente ou não for número
+  finito, cai para `listings.length` quando `listings` existir (caso
+  `PropertyDetail`), senão não há contagem. O valor passa por `Math.trunc`, então
+  `2.9` vira "2 imobiliárias". `0`, `1`, negativo, fracionário `< 2`, `NaN`,
+  `Infinity`, `null` e ausente → `null`, e **nada** vai ao DOM (sem elemento
+  vazio). Nunca há caso de singular: o badge só existe no plural. Se a API não
+  mandar o campo, o card simplesmente não sinaliza a agregação — degradação
+  prevista, não quebra.
 
 ### PropertyGallery
 
@@ -206,7 +223,9 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
   disponíveis" para um imóvel que tem fotos.
 - **Nada de elemento interativo dentro do card.** O `<Link>` envolve o card
   inteiro; aninhar `<button>`/`<a>` produz HTML inválido e quebra a navegação por
-  teclado. Favoritar/compartilhar terá que reestruturar isso.
+  teclado. Favoritar/compartilhar terá que reestruturar isso. Por isso o badge de
+  imobiliárias é um `<p>` sobreposto, e sem `aria-hidden`: o texto precisa ser
+  lido pelo leitor de tela dentro do link, não virar um alvo de clique próprio.
 - O nível do heading do card é `headingLevel` (default `3`). A página é
   responsável por não pular nível.
 - O reset global define `a { color: inherit }`, então `.card` não vira azul

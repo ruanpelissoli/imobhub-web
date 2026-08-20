@@ -4,6 +4,7 @@ import { PropertyImage } from './PropertyImage'
 import styles from './PropertyCard.module.css'
 import {
   buildAttributes,
+  formatListingsBadge,
   formatLocation,
   formatPrice,
   getPrimaryPhoto,
@@ -17,12 +18,16 @@ export interface PropertyCardProps {
 export function PropertyCard({ property, headingLevel = 3 }: PropertyCardProps) {
   const attributes = buildAttributes(property)
   const location = formatLocation(property.neighborhood, property.city)
+  const listingsBadge = formatListingsBadge(property)
   const Heading = `h${headingLevel}` as const
 
   return (
     <Link href={`/imoveis/${property.id}`} className={styles.card}>
       <article>
-        <PropertyImage src={getPrimaryPhoto(property.photos)} alt={property.title} />
+        <div className={styles.mediaFrame}>
+          <PropertyImage src={getPrimaryPhoto(property.photos)} alt={property.title} />
+          {listingsBadge !== null && <p className={styles.badge}>{listingsBadge}</p>}
+        </div>
 
         <div className={styles.body}>
           <p className={styles.price}>{formatPrice(property.price)}</p>

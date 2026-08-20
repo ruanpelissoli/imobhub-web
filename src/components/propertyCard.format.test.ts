@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   buildAttributes,
   formatArea,
+  formatListingsBadge,
   formatLocation,
   formatPrice,
   getPrimaryPhoto,
@@ -122,6 +123,54 @@ describe('buildAttributes', () => {
 
   it('retorna lista vazia quando todos os atributos são omitidos', () => {
     expect(buildAttributes(baseAttributes)).toEqual([])
+  })
+})
+
+describe('formatListingsBadge', () => {
+  it('exibe o badge quando há duas ou mais imobiliárias', () => {
+    expect(formatListingsBadge({ listings_count: 2 })).toBe('2 imobiliárias')
+    expect(formatListingsBadge({ listings_count: 7 })).toBe('7 imobiliárias')
+  })
+
+  it('trunca contagem fracionária vinda da API', () => {
+    expect(formatListingsBadge({ listings_count: 2.9 })).toBe('2 imobiliárias')
+  })
+
+  it('não exibe o badge com menos de dois anúncios', () => {
+    expect(formatListingsBadge({ listings_count: 1 })).toBeNull()
+    expect(formatListingsBadge({ listings_count: 0 })).toBeNull()
+    expect(formatListingsBadge({ listings_count: -3 })).toBeNull()
+    expect(formatListingsBadge({ listings_count: 1.5 })).toBeNull()
+  })
+
+  it('não exibe o badge quando a contagem não é um número finito', () => {
+    expect(formatListingsBadge({ listings_count: Number.NaN })).toBeNull()
+    expect(
+      formatListingsBadge({ listings_count: Number.POSITIVE_INFINITY }),
+    ).toBeNull()
+  })
+
+  it('não exibe o badge quando a contagem é nula ou ausente', () => {
+    expect(formatListingsBadge({ listings_count: null })).toBeNull()
+    expect(formatListingsBadge({})).toBeNull()
+  })
+
+  it('cai para o tamanho de listings quando listings_count está ausente', () => {
+    expect(formatListingsBadge({ listings: [{}, {}, {}] })).toBe(
+      '3 imobiliárias',
+    )
+    expect(formatListingsBadge({ listings: [{}] })).toBeNull()
+    expect(formatListingsBadge({ listings: [] })).toBeNull()
+    expect(formatListingsBadge({ listings: null })).toBeNull()
+  })
+
+  it('prioriza listings_count sobre listings quando ambos existem', () => {
+    expect(formatListingsBadge({ listings_count: 5, listings: [{}, {}] })).toBe(
+      '5 imobiliárias',
+    )
+    expect(
+      formatListingsBadge({ listings_count: 1, listings: [{}, {}, {}] }),
+    ).toBeNull()
   })
 })
 

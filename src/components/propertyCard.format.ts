@@ -15,8 +15,17 @@ export type PropertyAttributesInput = Pick<
   'bedrooms' | 'bathrooms' | 'parking_spots' | 'area'
 >
 
+export interface ListingsBadgeInput {
+  listings_count?: number | null
+  listings?: readonly unknown[] | null
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value)
+}
+
 function isPositive(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value) && value > 0
+  return isFiniteNumber(value) && value > 0
 }
 
 export function formatLocation(neighborhood: string, city: string): string {
@@ -60,6 +69,19 @@ export function buildAttributes(property: PropertyAttributesInput): PropertyAttr
   }
 
   return attributes
+}
+
+export function formatListingsBadge(property: ListingsBadgeInput): string | null {
+  const raw = isFiniteNumber(property.listings_count)
+    ? property.listings_count
+    : Array.isArray(property.listings)
+      ? property.listings.length
+      : null
+
+  if (raw === null) return null
+
+  const count = Math.trunc(raw)
+  return count >= 2 ? `${count} imobiliárias` : null
 }
 
 export { isBrokenImage, type ImageLoadState } from './imageFallback'
