@@ -76,8 +76,13 @@ a pasta por componente. Nenhum dos dois grupos marca `'use client'`.
   `src/app/imoveis/ResultsError.tsx` (`ErrorMessage`). Os dois consumidores do
   `EmptyState` são Server Components e renderizam o `<Link>` de volta **fora** do
   primitivo, pelo mesmo motivo: `action` é callback.
-- `EMPTY_FEATURED_TITLE` existe em `@/lib/messages` mas **não tem consumidor**:
-  não há tela de destaques no produto ainda.
+- `EMPTY_FEATURED_TITLE` existe em `@/lib/messages` e continua **sem consumidor**,
+  agora por decisão: a seção de destaques da Home existe, mas quando a API devolve
+  lista vazia ela se omite em silêncio — um `EmptyState` logo abaixo da barra de
+  busca seria ruído. Ver `src/app/CLAUDE.md`.
+- A seção de destaques também **não** usa `ErrorMessage`: o erro dela é discreto
+  (`<p role="status">`), e este primitivo é um bloco `role="alert"` com ícone e
+  botão.
 
 ## Gotchas
 

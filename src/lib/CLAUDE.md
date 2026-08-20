@@ -67,8 +67,9 @@ de preço e área: `PropertyCard` e a tela de detalhe consomem daqui
   uma mensagem **que o `ApiError` emite**, inclua-a no `Set` — senão ela nunca
   chega à tela via `error.tsx`. O `Set` é só isso: **não** entram nele os textos
   de UI que o módulo também hospeda (`GENERIC_LOAD_ERROR_MESSAGE`,
-  `EMPTY_SEARCH_*`, `EMPTY_FEATURED_TITLE`, `PROPERTY_NOT_FOUND_TITLE`,
-  `PROPERTY_NOT_FOUND_DESCRIPTION`), que são conteúdo de tela e nunca
+  `EMPTY_SEARCH_*`, `EMPTY_FEATURED_TITLE`, `FEATURED_LOAD_ERROR_MESSAGE`,
+  `PROPERTY_NOT_FOUND_TITLE`, `PROPERTY_NOT_FOUND_DESCRIPTION`), que são
+  conteúdo de tela e nunca
   chegam como `error.message`. Incluí-los faria `resolveErrorMessage` repassar um
   texto genérico como se fosse diagnóstico nosso.
 - **`PROPERTY_NOT_FOUND_MESSAGE` e `PROPERTY_NOT_FOUND_TITLE` são coisas

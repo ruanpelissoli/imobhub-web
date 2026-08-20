@@ -6,7 +6,9 @@ Esqueleto navegacional do ImobHub: o root layout compartilhado e as três rotas
 principais do produto (`/`, `/imoveis`, `/imoveis/[id]`) mais a página 404.
 
 As três rotas já são telas de verdade. A Home navega para `/imoveis` com os
-filtros na URL; `/imoveis` lê esses filtros, chama `searchProperties`, renderiza
+filtros na URL e, abaixo do `SearchBar`, exibe a seção "Imóveis em destaque"
+(`FeaturedProperties.tsx`), que busca até 6 imóveis na API — a Home deixou de ser
+estática; `/imoveis` lê esses filtros, chama `searchProperties`, renderiza
 o grid de `PropertyCard` com contagem e paginação e oferece o `FilterPanel`
 lateral para refinar a busca; `/imoveis/[id]` chama `getPropertyById` e mostra
 galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
@@ -21,6 +23,16 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
 - **Carregamento via `loading.tsx`, erro via `error.tsx`.** Rotas que buscam dados
   não usam estado de `isLoading` no cliente: a busca é no servidor e o Suspense da
   rota cobre isso. `error.tsx` é `'use client'` por exigência do Next.
+- **A Home é a exceção: `<Suspense>` local em vez de `loading.tsx`.** A busca dos
+  destaques mora num subcomponente `async` de servidor (`FeaturedProperties.tsx`)
+  envolto em `<Suspense>` na própria `page.tsx`. Um `loading.tsx` na raiz
+  bloquearia a Home inteira — inclusive o hero e a barra de busca — enquanto a API
+  responde (ou até estourar o timeout de 10s de `request()`). Com o Suspense local
+  só o slot de destaques espera. **Não crie `src/app/loading.tsx`.**
+- **`sort: 'recent'` é premissa, não contrato.** O contrato da `imobhub-api` não
+  enumera valores de `sort`. Ele fica isolado em `featuredFilters.ts`
+  (`FEATURED_FILTERS`), que é o **ponto único de ajuste**. Se a API ignorar, o pior
+  caso é ordem arbitrária — e o rótulo "Imóveis em destaque" não promete recência.
 - **Header em um único lugar.** A marca "ImobHub" vive em `layout.tsx` e em lugar
   nenhum mais. Páginas nunca renderizam header próprio nem um `<main>` — o layout
   já fornece ambos, e aninhar `<main>` quebra a semântica.
@@ -48,7 +60,8 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
 - **`--color-surface` faz duplo papel como texto sobre o azul** (`.search-bar__submit`).
   A spec de tokens não define `--color-on-primary`; se um dia entrar tema escuro,
   esse é o primeiro ponto a virar token próprio.
-- **Lógica testável fora do `.tsx`: `imoveis/searchFilters.ts`.** Componentes de
+- **Lógica testável fora do `.tsx`: `imoveis/searchFilters.ts` e
+  `featuredFilters.ts`.** Componentes de
   servidor `async` não são triviais de renderizar em teste sem jsdom/plugin React;
   isolar parsing de query params, montagem de href de página e formatação numa
   função pura dá cobertura real dos edge cases sem arrastar infra de renderização.
@@ -88,6 +101,22 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
 
 ## Business logic
 
+- **Destaques da Home:** `searchProperties({ per_page: 6, sort: 'recent' })`.
+  `data: []` → a seção **inteira**, heading incluso, é omitida em silêncio (lista
+  vazia não é erro e o `EmptyState` seria ruído logo abaixo da barra de busca). Se
+  a API ignorar `per_page` e devolver mais itens, `takeFeatured` corta em 6 no
+  cliente. Falha de API (`ApiError`: rede, timeout, 4xx, 5xx, corpo inválido) →
+  a seção renderiza o `h2` **mais** um `<p role="status">` com
+  `FEATURED_LOAD_ERROR_MESSAGE`; hero e `SearchBar` continuam intactos. O heading
+  fica no caminho de erro de propósito: um parágrafo solto sem contexto acima é
+  pior de ler, e a omissão total é reservada ao caso de lista vazia. Erro que não
+  é `ApiError` é re-lançado.
+- O grid dos destaques segue a mesma escala de `/imoveis`: 1 coluna ≤640px, 2 em
+  641–1024px, 3 a partir de 1025px, com `repeat(n, minmax(0, 1fr))` — o
+  `minmax(0, …)` é o que impede título longo de estourar a coluna a 375px.
+- A mensagem de erro dos destaques é um `<p>` simples, **não** o primitivo
+  `ErrorMessage`: aquele é um bloco `role="alert"` com ícone e botão — o oposto de
+  "discreto" — e exibiria a `error.message` do `ApiError` em vez do texto fixo.
 - Os query params da busca usam os nomes do contrato da API (`SearchFilters` em
   `src/lib/types.ts`). Nada de `?cidade=&precoMax=`: essa nomenclatura saiu com os
   links placeholder da Home e não deve voltar.
@@ -134,8 +163,13 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
 
 - `next` (App Router, `next/link`, `next/navigation`), `react`, `react-dom`.
 - Dados vêm exclusivamente de `src/lib/api.ts` — nenhuma rota deve chamar `fetch`
-  direto para a `imobhub-api`. Veja `src/lib/CLAUDE.md`. Hoje `/imoveis`
+  direto para a `imobhub-api`. Veja `src/lib/CLAUDE.md`. Hoje `/`
+  (`searchProperties`, via `FeaturedProperties.tsx`), `/imoveis`
   (`searchProperties`) e `/imoveis/[id]` (`getPropertyById`) consomem a API.
+- `/` consome o `PropertyCard` com o `headingLevel` default (`3`), sob o `h2` da
+  seção de destaques, e `@/lib/messages` para o texto de erro discreto. Como
+  `searchProperties` usa `cache: 'no-store'`, a Home saiu de `○` para `ƒ` na saída
+  do `next build` — consequência esperada de consumir a API.
 - `/imoveis` reusa `toTransactionType`/`SEARCH_RESULTS_PATH` de
   `@/components/searchBarUrl` (módulo puro, sem `'use client'`) para não duplicar
   a regra de descarte que a barra de busca já implementa, e o `PropertyCard` com
