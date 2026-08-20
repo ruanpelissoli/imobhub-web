@@ -18,8 +18,24 @@ Componentes reutilizados por mais de uma rota:
   (`currentQuery`), e navega com `router.push`. `filterPanelUrl.ts` guarda a
   lógica pura de montar/limpar a URL, a lista de tipos de imóvel e a contagem de
   filtros ativos exibida no botão.
+- **`Skeleton/`** — biblioteca de primitivos de estado de carregamento
+  (`SkeletonBox`, `SkeletonText`, `SkeletonCard`, `SkeletonDetailHero`,
+  `SkeletonDetailData`, `SkeletonTableRow`), a ser consumida pelos `loading.tsx`
+  das rotas. Seis arquivos que compartilham um único CSS Module não caberiam na
+  raiz sem virar ruído. Decisões, regras de resolução de larguras/colunas e
+  gotchas em `Skeleton/CLAUDE.md`.
+- **`ui/`** — primitivos genéricos sem domínio (`EmptyState`, `ErrorMessage`),
+  cada um com pasta própria (`.tsx` + `.module.css` + `index.ts`). Ver
+  `ui/CLAUDE.md`.
 
 `imageFallback.ts` é compartilhado por card e galeria: detecta foto quebrada.
+
+**A raiz é flat; subpasta só quando há coesão que justifique.** As duas que
+existem chegaram por motivos diferentes e ambos valem como precedente:
+`Skeleton/` é uma **família** que compartilha um CSS Module e um `@keyframes`, e
+por isso mora junta na raiz; `ui/` é a coleção de primitivos **avulsos**, onde
+cada componente tem seu próprio módulo e é usado sozinho. Primitivo genérico novo
+nasce em `ui/`; componente de domínio continua flat na raiz.
 
 Padrão do diretório: o `.tsx` cuida de markup e boundary de client; toda regra
 testável mora num módulo `.ts` co-locado, porque o projeto usa Vitest **sem
@@ -31,6 +47,13 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
 - **Client no menor escopo possível.** `SearchBar`, `PropertyImage` e
   `PropertyGallery` são `'use client'`; as páginas que os aninham continuam Server
   Components. `PropertyCard` inteiro é servidor — só a imagem precisa de estado.
+- **Primitivo não leva diretiva nenhuma** — vale para `ui/` e `Skeleton/`.
+  Componente sem `'use client'` é *compartilhado*: renderiza no servidor quando
+  importado por um Server Component e no cliente quando importado por um client.
+  É o que deixa `EmptyState` servir a `/imoveis` (servidor) e `ErrorMessage`
+  servir ao wrapper client que passa `onRetry`. **Callback não atravessa a
+  fronteira servidor→cliente** — quem passa `onClick`/`onRetry` tem que ser
+  client. Ver `ui/CLAUDE.md`.
 - **`<img>` cru, não `next/image`**, em card e galeria. As fotos vêm de scraping
   de imobiliárias arbitrárias e `next.config.ts` não tem `images.remotePatterns`;
   sem lista de hosts o `next/image` quebra em runtime. A regra
@@ -51,8 +74,8 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
 - **Radios em `<fieldset>`/`<legend>`, não `<select>`.** Duas opções fixas ficam
   visíveis de uma vez e cada `<label>` vira alvo de toque de 44px.
 - **CSS: dois esquemas, por idade.** `SearchBar` usa classes globais
-  (`.search-bar*` em `src/app/globals.css`); `PropertyCard`, `PropertyGallery` e
-  `FilterPanel` usam **CSS Modules co-locado**, suportado nativamente pelo Next,
+  (`.search-bar*` em `src/app/globals.css`); `PropertyCard`, `PropertyGallery`,
+  `FilterPanel`, `Skeleton/` e `ui/` usam **CSS Modules co-locado**, suportado nativamente pelo Next,
   sem dependência nova e sem inchar `globals.css`. **Componente novo nasce com CSS
   Module**; `globals.css` fica para reset e utilitários de layout.
 - **Todo valor visual vem de `src/app/tokens.css`.** CSS Module consome
@@ -204,9 +227,10 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
   puro e sem `'use client'` de propósito: precisa ser importável de Server
   Components. `src/app/imoveis/[id]/page.tsx` consome o `PropertyGallery`.
 - `src/app/imoveis/page.tsx` consome o `FilterPanel` como primeiro item da grade
-  `.layout`, passando `defaults`, `currentQuery` e `key={currentQuery}`. Quem
+  `.layout`, passando `defaults`, `currentQuery` e `key={currentQuery}` — quem
   decide entre `<aside>` (sidebar) e botão + `role="dialog"` (drawer) é o próprio
-  painel.
+  painel —, e o `ui/EmptyState` no bloco de lista vazia;
+  `src/app/imoveis/ResultsError.tsx` consome o `ui/ErrorMessage`.
 
 ## Gotchas
 

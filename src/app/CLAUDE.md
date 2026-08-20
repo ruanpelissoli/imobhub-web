@@ -28,7 +28,7 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   `{ default: 'ImobHub', template: '%s | ImobHub' }`, então cada página exporta só
   o título curto (`'Resultados'`) e o sufixo da marca vem de graça.
 - **Sem framework de CSS.** `globals.css` guarda reset, utilitárias
-  (`.container`, `.brand`, `.nav-list`, `.page-title`, `.empty-state`) e as
+  (`.container`, `.brand`, `.nav-list`, `.page-title`) e as
   classes das telas mais antigas (`.search-bar*`, `.home-hero*`). Sem Tailwind ou
   styled-components. **Tela nova nasce com CSS Module co-locado**
   (`imoveis/page.module.css`, `imoveis/[id]/propertyDetail.module.css`), como os
@@ -60,9 +60,11 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   isso, por caminhos diferentes — ao mexer em qualquer uma, saiba qual é qual:
   - `/imoveis` usa **`try/catch` na própria página**, então a mensagem certa nunca
     cruza a fronteira e é exibida como veio. Erro que não seja `ApiError` é
-    re-lançado (bug de código não vira mensagem amigável). O "Tentar novamente" é
-    o `RetryButton` client com `useRouter().refresh()`, já que não existe
-    `reset()` do boundary. **Prefira esse padrão em tela nova.**
+    re-lançado (bug de código não vira mensagem amigável). O bloco inteiro é o
+    primitivo `ErrorMessage` (`@/components/ui/ErrorMessage`), envolvido pelo
+    wrapper client `imoveis/ResultsError.tsx`, que passa
+    `onRetry={() => router.refresh()}` — não existe `reset()` de boundary aqui, e
+    o callback precisa nascer num client. **Prefira esse padrão em tela nova.**
   - `/imoveis/[id]` usa **`error.tsx`**, exigido pelos critérios da task, e por
     isso não pode confiar na mensagem que chega: `resolveErrorMessage`
     (`src/lib/messages.ts`) só exibe o que está numa allowlist e cai num texto
@@ -101,9 +103,12 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   só `page` — a URL do usuário não é "limpa" pelas nossas costas.
 - `per_page`, `sort` e `amenities` existem em `SearchFilters` mas **não** são lidos
   da URL: o `per_page` efetivo é o que a API devolve na resposta.
-- Lista vazia não é erro. `data: []` → "Nenhum imóvel encontrado…"; se a página
-  corrente for `> 1` (pedido além do total, ver `src/lib/CLAUDE.md`), há um link de
-  volta para a primeira página.
+- Lista vazia não é erro. `data: []` → `EmptyState` com `EMPTY_SEARCH_TITLE` e
+  `EMPTY_SEARCH_DESCRIPTION` (`src/lib/messages.ts`); se a página corrente for
+  `> 1` (pedido além do total, ver `src/lib/CLAUDE.md`), o link de volta para a
+  primeira página aparece **fora** do componente, logo abaixo — o primitivo é
+  genérico e não conhece paginação, e `action` exigiria um callback, que um
+  Server Component não pode passar.
 - A contagem vem de `response.total` com singular/plural ("1 imóvel encontrado" /
   "42 imóveis encontrados") e só aparece quando há resultado.
 - O `<aside>` "Filtros" **deixou de ser espaço reservado**: é o `FilterPanel`
@@ -132,7 +137,8 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
 - `/imoveis` reusa `toTransactionType`/`SEARCH_RESULTS_PATH` de
   `@/components/searchBarUrl` (módulo puro, sem `'use client'`) para não duplicar
   a regra de descarte que a barra de busca já implementa, e o `PropertyCard` com
-  `headingLevel={2}` — o grid fica direto sob o `h1` da página.
+  `headingLevel={2}` — o grid fica direto sob o `h1` da página. Os estados vazio
+  e de erro vêm dos primitivos de `@/components/ui` (ver `ui/CLAUDE.md`).
 - `/imoveis/[id]` usa `PropertyGallery`, `@/lib/format` e `@/lib/messages`.
 
 ## Gotchas
@@ -190,6 +196,9 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
     (três quase-idênticos, inventados por telas diferentes; `#f7f8fa` já aparece
     em dois arquivos, que é a deriva começando de novo);
   - o azul desabilitado `#7ba4ff` do `.retryButton:disabled` do detalhe;
-  - o par fundo/borda do bloco de erro (`#fdf3f3` / `#f0c2c2`) — `--color-error`
-    não cobre, ele é o tom de **texto**, e o texto atual (`#8c2f2f`) é um quarto
-    vermelho a reconciliar.
+  - um par fundo/borda tintado para bloco de erro. Os literais `#fdf3f3` /
+    `#f0c2c2` / `#8c2f2f` **saíram do repo** junto com o `.error` de
+    `imoveis/page.module.css`: o `ErrorMessage` usa borda `--color-border` e
+    acento `--color-error`, sem fundo tintado. A dívida virou uma decisão
+    consciente de aparência, não um literal solto — se o tintado voltar, ele
+    nasce como token.

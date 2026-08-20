@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
+  EMPTY_FEATURED_TITLE,
+  EMPTY_SEARCH_DESCRIPTION,
+  EMPTY_SEARCH_TITLE,
   GENERIC_ERROR_MESSAGE,
+  GENERIC_LOAD_ERROR_MESSAGE,
   NETWORK_ERROR_MESSAGE,
   PROPERTY_NOT_FOUND_MESSAGE,
   SERVER_ERROR_MESSAGE,
@@ -30,6 +34,25 @@ describe('isUserFacingMessage', () => {
     expect(isUserFacingMessage(null)).toBe(false)
     expect(isUserFacingMessage(undefined)).toBe(false)
     expect(isUserFacingMessage('   ')).toBe(false)
+  })
+
+  it('não reconhece os textos de UI que não vêm do ApiError', () => {
+    expect(isUserFacingMessage(GENERIC_LOAD_ERROR_MESSAGE)).toBe(false)
+    expect(isUserFacingMessage(EMPTY_SEARCH_TITLE)).toBe(false)
+    expect(isUserFacingMessage(EMPTY_FEATURED_TITLE)).toBe(false)
+  })
+})
+
+describe('textos de estado vazio', () => {
+  it('usa os títulos acordados para busca e destaques', () => {
+    expect(EMPTY_SEARCH_TITLE).toBe('Nenhum imóvel encontrado')
+    expect(EMPTY_FEATURED_TITLE).toBe(
+      'Nenhum destaque disponível no momento',
+    )
+  })
+
+  it('sugere ajustar os filtros na descrição da busca', () => {
+    expect(EMPTY_SEARCH_DESCRIPTION).toMatch(/filtros/i)
   })
 })
 
