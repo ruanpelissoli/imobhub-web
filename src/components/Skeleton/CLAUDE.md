@@ -100,6 +100,21 @@ real**, nunca uma cópia dos breakpoints.
 
 ## Gotchas
 
+- **`.chips`/`.chip` espelham `.attributes` de `imoveis/[id]/propertyDetail.module.css`
+  e mudam junto com ele.** Mesmo grid (2 colunas até 767px, 4 a partir de
+  `48rem`, com `minmax(0, 1fr)`), mesmo `gap: var(--space-2)` e a mesma altura:
+  `height: 2.375rem` aqui contra `min-height: 2.375rem` no chip real. O `2.375rem`
+  é número pinado, não a altura natural da pílula (~`2.28rem`, que depende de
+  arredondamento de fonte) — foi escolhido acima dela justamente para o chip real
+  obedecer. Alterar um lado sozinho reabre CLS na troca do Suspense e
+  `src/app/imoveis/[id]/propertyDetailLayout.test.ts` reprova.
+- **O `.chip` não tem largura própria.** Em grid a célula estica; o `width: 6rem`
+  que existia no modo flex sumiu por isso.
+- **O esqueleto desenha sempre 4 chips, o real desenha de 0 a 4.** `formatAttributes`
+  omite atributo ausente e a seção some inteira quando não sobra nenhum, então o
+  imóvel com 1 ou 2 atributos "encolhe" na troca. É a mesma convenção já aceita
+  para as seções que o esqueleto mostra e o conteúdo real pode não ter — ver
+  `src/app/imoveis/[id]/CLAUDE.md`.
 - **Os chips têm raio diferente do real.** Os chips de atributo do detalhe usam
   `border-radius: 999px`; aqui é `--radius-sm`, porque literal de raio reprova em
   `designTokens.test.ts` e criar token de pílula é decisão de spec. Diferença
