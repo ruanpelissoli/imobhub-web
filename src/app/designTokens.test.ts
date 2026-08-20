@@ -19,6 +19,11 @@ const stylesheets = [
     literalFree: true,
   },
   {
+    name: 'src/components/Skeleton/Skeleton.module.css',
+    css: read('../components/Skeleton/Skeleton.module.css'),
+    literalFree: true,
+  },
+  {
     name: 'src/components/ui/EmptyState/EmptyState.module.css',
     css: read('../components/ui/EmptyState/EmptyState.module.css'),
     literalFree: true,

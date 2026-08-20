@@ -16,13 +16,24 @@ Componentes reutilizados por mais de uma rota:
   vigentes por prop (`defaults: SearchFilters`) e a query string corrente
   (`currentQuery`), e navega com `router.push`. `filterPanelUrl.ts` guarda a
   lógica pura de montar/limpar a URL e a lista de tipos de imóvel.
+- **`Skeleton/`** — biblioteca de primitivos de estado de carregamento
+  (`SkeletonBox`, `SkeletonText`, `SkeletonCard`, `SkeletonDetailHero`,
+  `SkeletonDetailData`, `SkeletonTableRow`), a ser consumida pelos `loading.tsx`
+  das rotas. Seis arquivos que compartilham um único CSS Module não caberiam na
+  raiz sem virar ruído. Decisões, regras de resolução de larguras/colunas e
+  gotchas em `Skeleton/CLAUDE.md`.
+- **`ui/`** — primitivos genéricos sem domínio (`EmptyState`, `ErrorMessage`),
+  cada um com pasta própria (`.tsx` + `.module.css` + `index.ts`). Ver
+  `ui/CLAUDE.md`.
 
 `imageFallback.ts` é compartilhado por card e galeria: detecta foto quebrada.
 
-**`ui/` é a subpasta dos primitivos** — componentes genéricos sem domínio
-(`EmptyState`, `ErrorMessage`). Lá dentro cada componente tem pasta própria com
-`.tsx`, `.module.css` e `index.ts`; aqui na raiz o layout é flat. Primitivo novo
-nasce em `ui/`, componente de domínio continua na raiz. Ver `ui/CLAUDE.md`.
+**A raiz é flat; subpasta só quando há coesão que justifique.** As duas que
+existem chegaram por motivos diferentes e ambos valem como precedente:
+`Skeleton/` é uma **família** que compartilha um CSS Module e um `@keyframes`, e
+por isso mora junta na raiz; `ui/` é a coleção de primitivos **avulsos**, onde
+cada componente tem seu próprio módulo e é usado sozinho. Primitivo genérico novo
+nasce em `ui/`; componente de domínio continua flat na raiz.
 
 Padrão do diretório: o `.tsx` cuida de markup e boundary de client; toda regra
 testável mora num módulo `.ts` co-locado, porque o projeto usa Vitest **sem
@@ -34,12 +45,13 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
 - **Client no menor escopo possível.** `SearchBar`, `PropertyImage` e
   `PropertyGallery` são `'use client'`; as páginas que os aninham continuam Server
   Components. `PropertyCard` inteiro é servidor — só a imagem precisa de estado.
-- **Os primitivos de `ui/` não têm diretiva nenhuma**, de propósito: componente
-  sem `'use client'` é *compartilhado* e renderiza dos dois lados, então
-  `EmptyState` serve a um Server Component e `ErrorMessage` serve ao wrapper
-  client que passa `onRetry`. Callback nunca atravessa a fronteira
-  servidor→cliente — quem passa `onClick`/`onRetry` tem que ser client. Ver
-  `ui/CLAUDE.md`.
+- **Primitivo não leva diretiva nenhuma** — vale para `ui/` e `Skeleton/`.
+  Componente sem `'use client'` é *compartilhado*: renderiza no servidor quando
+  importado por um Server Component e no cliente quando importado por um client.
+  É o que deixa `EmptyState` servir a `/imoveis` (servidor) e `ErrorMessage`
+  servir ao wrapper client que passa `onRetry`. **Callback não atravessa a
+  fronteira servidor→cliente** — quem passa `onClick`/`onRetry` tem que ser
+  client. Ver `ui/CLAUDE.md`.
 - **`<img>` cru, não `next/image`**, em card e galeria. As fotos vêm de scraping
   de imobiliárias arbitrárias e `next.config.ts` não tem `images.remotePatterns`;
   sem lista de hosts o `next/image` quebra em runtime. A regra
@@ -60,8 +72,8 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
 - **Radios em `<fieldset>`/`<legend>`, não `<select>`.** Duas opções fixas ficam
   visíveis de uma vez e cada `<label>` vira alvo de toque de 44px.
 - **CSS: dois esquemas, por idade.** `SearchBar` usa classes globais
-  (`.search-bar*` em `src/app/globals.css`); `PropertyCard`, `PropertyGallery` e
-  `FilterPanel` usam **CSS Modules co-locado**, suportado nativamente pelo Next,
+  (`.search-bar*` em `src/app/globals.css`); `PropertyCard`, `PropertyGallery`,
+  `FilterPanel`, `Skeleton/` e `ui/` usam **CSS Modules co-locado**, suportado nativamente pelo Next,
   sem dependência nova e sem inchar `globals.css`. **Componente novo nasce com CSS
   Module**; `globals.css` fica para reset e utilitários de layout.
 - **Todo valor visual vem de `src/app/tokens.css`.** CSS Module consome

@@ -16,6 +16,12 @@ Cada primitivo mora na própria pasta (`<Nome>/<Nome>.tsx`, `<Nome>.module.css`,
 componente existe porque um primitivo tende a acumular arquivos (estilo, lógica,
 subcomponentes) e o `index.ts` mantém o import curto: `@/components/ui/EmptyState`.
 
+`src/components/Skeleton/` é a outra subpasta de primitivos e resolve o mesmo
+problema por outro caminho: lá são seis componentes de uma **família**, que
+dividem um CSS Module e um `@keyframes`, então a pasta é uma só. Aqui os
+primitivos são **avulsos** — cada um tem módulo próprio e é usado sozinho —, daí
+a pasta por componente. Nenhum dos dois grupos marca `'use client'`.
+
 ## Key decisions
 
 - **Nenhum dos dois marca `'use client'`.** Um componente sem diretiva é
