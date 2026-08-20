@@ -20,8 +20,9 @@ Componentes reutilizados por mais de uma rota:
   filtros ativos exibida no botão.
 - **`Skeleton/`** — biblioteca de primitivos de estado de carregamento
   (`SkeletonBox`, `SkeletonText`, `SkeletonCard`, `SkeletonDetailHero`,
-  `SkeletonDetailData`, `SkeletonTableRow`), a ser consumida pelos `loading.tsx`
-  das rotas. Seis arquivos que compartilham um único CSS Module não caberiam na
+  `SkeletonDetailData`, `SkeletonTableRow`), consumida pelos `loading.tsx` das
+  rotas — hoje `src/app/imoveis/loading.tsx` usa `SkeletonCard`; o detalhe ainda
+  tem esqueleto ad-hoc. Seis arquivos que compartilham um único CSS Module não caberiam na
   raiz sem virar ruído. Decisões, regras de resolução de larguras/colunas e
   gotchas em `Skeleton/CLAUDE.md`.
 - **`ui/`** — primitivos genéricos sem domínio (`EmptyState`, `ErrorMessage`),
@@ -233,6 +234,7 @@ jsdom/RTL** e não dá para renderizar componentes em teste (mesmo precedente de
   decide entre `<aside>` (sidebar) e botão + `role="dialog"` (drawer) é o próprio
   painel —, e o `ui/EmptyState` no bloco de lista vazia;
   `src/app/imoveis/ResultsError.tsx` consome o `ui/ErrorMessage`.
+  `src/app/imoveis/loading.tsx` consome `Skeleton/SkeletonCard`.
 
 ## Gotchas
 

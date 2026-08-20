@@ -9,11 +9,11 @@ Blocos animados que representam a forma do conteúdo enquanto os dados carregam:
 Esta pasta entrega **só os primitivos**; quem os arranja em tela é o `loading.tsx`
 de cada rota.
 
-Consumidor hoje: **`src/app/imoveis/[id]/loading.tsx`**, que usa
+Consumidores hoje: **`src/app/imoveis/loading.tsx`** usa `SkeletonCard` dentro do
+mesmo `styles.grid` do grid real (a classe ad-hoc `.skeletonCard` saiu de
+`imoveis/page.module.css`); **`src/app/imoveis/[id]/loading.tsx`** usa
 `SkeletonDetailHero`, `SkeletonDetailData` e `SkeletonBox` (este para o link de
-volta, o título da seção e as linhas de anúncio). `imoveis/loading.tsx` **continua**
-com o esqueleto ad-hoc `.skeletonCard` do módulo dele — migrá-lo para
-`SkeletonCard` é trabalho separado, não pendência desta pasta.
+volta, o título da seção e as linhas de anúncio).
 
 ## Key decisions
 
@@ -76,8 +76,10 @@ com o esqueleto ad-hoc `.skeletonCard` do módulo dele — migrá-lo para
   `literalFree: true`, então o módulo está sob a proibição de literal de cor/raio/
   sombra/fonte **e** sob a checagem de `var(--x)` definido. Literal só para
   dimensão própria (alturas, `5rem` da miniatura, `48rem` da media query, `1.4s`).
-- `src/app/imoveis/[id]/loading.tsx` é o consumidor. As dimensões foram derivadas
-  de `PropertyCard.module.css`, `PropertyGallery.module.css` e
+- `src/app/imoveis/loading.tsx` (`SkeletonCard`) e
+  `src/app/imoveis/[id]/loading.tsx` (`SkeletonDetailHero`, `SkeletonDetailData`,
+  `SkeletonBox`) são os consumidores. As dimensões foram derivadas de
+  `PropertyCard.module.css`, `PropertyGallery.module.css` e
   `imoveis/[id]/propertyDetail.module.css` — mexer em altura ou `aspect-ratio`
   aqui reabre CLS naquela tela.
 
