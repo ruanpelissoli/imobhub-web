@@ -9,8 +9,7 @@
  * Não existem variáveis --bp-*: custom property não é avaliada dentro de @media
  * (`@media (min-width: var(--bp-tablet))` é inválido e ignorado em silêncio).
  * Escreva o valor literal na media query e use esta tabela como referência.
- * Dívida conhecida: a media query de 48rem da .search-bar (globals.css) ainda não
- * segue esta escala. /imoveis já usa 641px/1025px.
+ * Home (globals.css, home.module.css) e /imoveis seguem a escala: 641px/1025px.
  */
 
 :root {

@@ -57,7 +57,7 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   arquivo no topo do bundle). **Nenhum valor literal de cor, fonte, raio ou
   sombra fora de `tokens.css`** — `designTokens.test.ts` reprova o build se um
   escapar num dos arquivos da lista `consumers`. Literal só é legítimo para
-  dimensão específica (`72rem` de container, `44px` de alvo de toque, `48rem` da
+  dimensão específica (`72rem` de container, `44px` de alvo de toque, `641px` da
   media query). CSS Module não precisa de import: as custom properties de
   `:root` cascateiam para dentro do módulo.
 - **`--color-overlay`** (`--color-text` a 55%) é o fundo semitransparente de
@@ -237,20 +237,26 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   `@media (min-width: var(--bp-tablet))` é inválido e ignorado sem aviso — por
   isso os breakpoints são bloco de comentário em `tokens.css`, não variáveis.
   A escala canônica é mobile ≤640px / tablet 641–1024px / desktop ≥1025px.
-  `/imoveis` já usa `641px`/`1025px`; sobraram as media queries de 48rem da
-  `.search-bar` em `globals.css`, de `imoveis/[id]/propertyDetail.module.css` e do
-  `Skeleton.module.css` — dívida consciente. As duas últimas precisam mudar
-  **juntas**: é o `48rem` que casa o `aspect-ratio` do esqueleto do hero com o da
-  galeria real e mantém o CLS ~0. Realinhar é task própria.
+  Home (`globals.css`, `home.module.css`) e `/imoveis` já seguem a escala, e
+  `designTokens.test.ts` trava a regressão nos estilos da Home — inclusive o grid
+  de destaques em 1/2/3 colunas, que o esqueleto do `<Suspense>` reusa. Sobraram
+  as media queries de 48rem de `PropertyGallery.module.css`,
+  `imoveis/[id]/propertyDetail.module.css` e `Skeleton.module.css` — dívida
+  consciente, e precisam mudar **juntas**: é o `48rem` que casa o `aspect-ratio`
+  do esqueleto do hero com o da galeria real e mantém o CLS ~0. Realinhar é task
+  própria.
 - **`.srOnly` vive em `home.module.css`, não em `globals.css`.** Ela nasceu com o
   anúncio de carregamento dos destaques e por enquanto tem um consumidor só; o
   segundo consumidor fora da Home é o gatilho para promovê-la a utilitária global.
-  Só tem literal de dimensão (`1px`, `rect(0, 0, 0, 0)`), então `home.module.css`
-  segue em `consumers` do `designTokens.test.ts` com `literalFree: true`.
+  Só tem literal de dimensão (`1px`, `rect(0, 0, 0, 0)`) e **nenhuma media
+  query**, então `home.module.css` continua passando tanto na proibição de literal
+  quanto na trava de breakpoints de `designTokens.test.ts`.
 - **`FeaturedSkeleton.tsx` e `FeaturedProperties.tsx` compartilham
   `home.module.css` e precisam ficar em paridade de layout** — mesma `.featured`,
   mesma `.title`, mesmo `.grid`, mesma contagem de itens. Mexeu no grid de um
   lado, acerte o outro, senão a troca do fallback pelo conteúdo empurra a página.
+  O `.grid` é a **única** fonte dos breakpoints de destaques: o esqueleto nunca
+  copia `641px`/`1025px` para si.
 - **`loading.tsx` e `page.tsx` compartilham `page.module.css` e precisam ficar
   em paridade de layout.** `.filters` e `.filtersTrigger` existem **só** para o
   esqueleto: `.filters` reproduz a sidebar (visível a partir de 1025px) e

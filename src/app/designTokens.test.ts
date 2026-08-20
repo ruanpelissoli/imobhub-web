@@ -176,6 +176,74 @@ describe.each(consumers)('$name', ({ css }) => {
 
 })
 
+describe('breakpoints da Home', () => {
+  const globals = read('./globals.css')
+  const home = read('./home.module.css')
+
+  it('não usa mais a media query de 48rem fora da escala canônica', () => {
+    expect(globals).not.toMatch(/48rem/)
+    expect(home).not.toMatch(/48rem/)
+  })
+
+  it('vira a .search-bar para horizontal a partir de 641px', () => {
+    const tabletBlock = globals.match(
+      /@media\s*\(\s*min-width:\s*641px\s*\)\s*\{[\s\S]*?\n\}/,
+    )
+    expect(tabletBlock).not.toBeNull()
+    expect(tabletBlock?.[0]).toMatch(/\.search-bar\s*\{[^}]*flex-direction:\s*row/)
+  })
+
+  it('mantém o grid de destaques em 1/2/3 colunas com minmax(0, 1fr)', () => {
+    expect(home).toMatch(
+      /@media\s*\(\s*min-width:\s*641px\s*\)\s*\{[\s\S]*?repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
+    )
+    expect(home).toMatch(
+      /@media\s*\(\s*min-width:\s*1025px\s*\)\s*\{[\s\S]*?repeat\(3,\s*minmax\(0,\s*1fr\)\)/,
+    )
+    expect(home).not.toMatch(/grid-template-columns[^;]*repeat\(4/)
+  })
+
+  it('só usa breakpoints da escala canônica nos estilos da Home', () => {
+    const breakpoints = [
+      ...globals.matchAll(/@media[^{]*min-width:\s*([^)\s]+)/g),
+      ...home.matchAll(/@media[^{]*min-width:\s*([^)\s]+)/g),
+    ].map((match) => match[1])
+
+    expect(breakpoints.length).toBeGreaterThan(0)
+    for (const breakpoint of breakpoints) {
+      expect(['641px', '1025px']).toContain(breakpoint)
+    }
+  })
+
+  it('protege hero e alvos de toque da Home', () => {
+    for (const selector of [
+      '.page-title',
+      '.home-hero__subtitle',
+      '.search-bar__field',
+      '.search-bar__transaction',
+      '.search-bar__input',
+    ]) {
+      const rule = globals.match(
+        new RegExp(`\\${selector}\\s*\\{([^}]*)\\}`),
+      )?.[1]
+      expect(rule).toBeDefined()
+      expect(rule).toMatch(/overflow-wrap:\s*anywhere|min-width:\s*0/)
+    }
+
+    for (const selector of [
+      '.brand',
+      '.search-bar__input',
+      '.search-bar__option',
+      '.search-bar__submit',
+    ]) {
+      const rule = globals.match(
+        new RegExp(`\\${selector}\\s*\\{([^}]*)\\}`),
+      )?.[1]
+      expect(rule).toMatch(/min-height:\s*44px/)
+    }
+  })
+})
+
 describe.each(stylesheets)('$name', ({ css }) => {
   it('só usa var(--x) de tokens definidos em tokens.css', () => {
     const used = Array.from(
