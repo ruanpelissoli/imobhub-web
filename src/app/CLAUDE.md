@@ -51,7 +51,7 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   arquivo no topo do bundle). **Nenhum valor literal de cor, fonte, raio ou
   sombra fora de `tokens.css`** — `designTokens.test.ts` reprova o build se um
   escapar num dos arquivos da lista `consumers`. Literal só é legítimo para
-  dimensão específica (`72rem` de container, `44px` de alvo de toque, `48rem` da
+  dimensão específica (`72rem` de container, `44px` de alvo de toque, `641px` da
   media query). CSS Module não precisa de import: as custom properties de
   `:root` cascateiam para dentro do módulo.
 - **`--color-overlay`** (`--color-text` a 55%) é o fundo semitransparente de
@@ -216,11 +216,13 @@ galeria e dados canônicos, com as fronteiras `loading`/`error`/`notFound` (ver
   `@media (min-width: var(--bp-tablet))` é inválido e ignorado sem aviso — por
   isso os breakpoints são bloco de comentário em `tokens.css`, não variáveis.
   A escala canônica é mobile ≤640px / tablet 641–1024px / desktop ≥1025px.
-  `/imoveis` já usa `641px`/`1025px`; sobraram as media queries de 48rem da
-  `.search-bar` em `globals.css`, de `imoveis/[id]/propertyDetail.module.css` e do
-  `Skeleton.module.css` — dívida consciente. As duas últimas precisam mudar
-  **juntas**: é o `48rem` que casa o `aspect-ratio` do esqueleto do hero com o da
-  galeria real e mantém o CLS ~0. Realinhar é task própria.
+  Home (`globals.css`, `home.module.css`) e `/imoveis` já seguem a escala, e
+  `designTokens.test.ts` trava a regressão nos estilos da Home. Sobraram as media
+  queries de 48rem de `PropertyGallery.module.css`,
+  `imoveis/[id]/propertyDetail.module.css` e `Skeleton.module.css` — dívida
+  consciente, e precisam mudar **juntas**: é o `48rem` que casa o `aspect-ratio`
+  do esqueleto do hero com o da galeria real e mantém o CLS ~0. Realinhar é task
+  própria.
 - **`loading.tsx` e `page.tsx` compartilham `page.module.css` e precisam ficar
   em paridade de layout.** `.filters` e `.filtersTrigger` existem **só** para o
   esqueleto: `.filters` reproduz a sidebar (visível a partir de 1025px) e

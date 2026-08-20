@@ -86,6 +86,7 @@ main.container {
 .page-title {
   margin-bottom: var(--space-2);
   font-size: var(--text-2xl);
+  overflow-wrap: anywhere;
 }
 
 .nav-list {
@@ -122,6 +123,7 @@ main.container {
 .home-hero__subtitle {
   max-width: 46rem;
   color: var(--color-text-muted);
+  overflow-wrap: anywhere;
 }
 
 .search-bar {
@@ -209,14 +211,15 @@ main.container {
   outline-offset: 2px;
 }
 
-@media (min-width: 48rem) {
+@media (min-width: 641px) {
   .search-bar {
     flex-direction: row;
     flex-wrap: wrap;
     align-items: flex-end;
   }
 
+  /* basis pequena o bastante para campo + transação + botão caberem numa linha já em 641px */
   .search-bar__field {
-    flex: 1 1 20rem;
+    flex: 1 1 14rem;
   }
 }
